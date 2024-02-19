@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="../css/popup.css" media="screen" />
+    </head>
+<body>
+    <div class="content">
+        <script src="../js/popup.js"></script>
+        <div id="header">
+            <img id="logo" src="../images/icon.jpeg" alt="Logo">
+            <h1>TPScanner</h1>
+            <img id="item-image" src="../images/item.png" alt="Item image">
+        </div>
+        
+        <div id="title-container">
+            <p>You're browsing:</p>
+            <p id="title"></p>
+            <input type="number" id="quantity" min="1" value="1" title="Enter the desired quantity">
+            <button id="add" title="Add the item to your basket">Add</button>
+        </div>
+        <div class="box">
+            <p class="title">Your basket:</p>
+            <table id="items">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th colspan="2">Q.ty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+            <div class="box-buttons">
+                <button id="clear" title="Empty your basket">Clear all</button>
+            </div>
+        </div>
+        
+        <div class="site-footer">
+            <div class="footer-p">v. - <a href="">Fork me on <img src="../images/github.png" width="10" /></a></div>
+            <div class="footer-buttons">
+                <button id="find-deals" title="Click to find the best deals.">Find deals</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

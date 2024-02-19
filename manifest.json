@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "TPScanner",
+    "version": "0.1.0",
+    "description": "An extension that finds best deals on Trovaprezzi.it",
+    "icons": {
+        "48": "images/icon.png"
+    },
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://www.trovaprezzi.it/*",
+        "https://trovaprezzi.it/*"
+    ],
+    "action": {
+        "default_icon": "images/icon.png",
+        "default_popup": "html/popup.html"
+    },
+    "background": {
+        "service_worker": "js/background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.trovaprezzi.it/*"
+            ],
+            "js": [
+                "js/content.js"
+            ]
+        }
+    ]
+}
