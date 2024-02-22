@@ -121,8 +121,3 @@ table td {
     padding: 0 10px;
     border: none;
 }
-
-table tr {
-    border-bottom: 2px solid #000 !important;
-    /* Adjust as needed */
-}
