@@ -1,4 +1,5 @@
 # TPscanner
+
 A Chromium extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
 
 ## Usage
