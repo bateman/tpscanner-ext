@@ -6,6 +6,8 @@
 <body>
     <div class="content">
         <script src="../js/popup.js"></script>
+        <script src="../js/scraping.js"></script>
+        <script src="../js/dealsfinder.js"></script>
         <div id="header">
             <img id="logo" src="../images/icon.jpeg" alt="Logo">
             <h1>TPScanner</h1>
@@ -31,14 +33,15 @@
                 </tbody>
             </table>
             <div class="box-buttons">
+                <a class="box-deals" id="box-deals" href="deals.html" target="_blank"></a>
                 <button id="clear" title="Empty your basket">Clear all</button>
             </div>
         </div>
         
         <div class="site-footer">
-            <div class="footer-p">v. - <a href="">Fork me on <img src="../images/github.png" width="10" /></a></div>
+            <div class="footer-gh">ver. <span id="version"></span> - <a href="https://github.com/bateman/tpscanner-ext">Fork me on <img class="footer-gh" src="../images/github.png" /></a></div>
             <div class="footer-buttons">
-                <button id="find-deals" title="Click to find the best deals.">Find deals</button>
+                <button id="find-deals" title="Click to find the best deals">Find deals</button>
             </div>
         </div>
     </div>
