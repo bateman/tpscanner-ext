@@ -186,6 +186,8 @@ function updateBestDealsMessage(individualDeals, cumulativeDeals) {
     const m = cumulativeDeals ? cumulativeDeals.length : -1;
     if (n !== -1 && m !== -1) {
         boxDeals.textContent = 'Found ' + n + ' individual deal(s), ' + m + ' cumulative deal(s)';
+        boxDeals.classList.add('blink');
+        setTimeout(() => boxDeals.classList.remove('blink'), 1000);
     } else {
         boxDeals.textContent = '';
     }
