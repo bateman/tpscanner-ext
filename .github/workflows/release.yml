@@ -1,0 +1,38 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - '*'
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set tag
+              id: tag
+              run: echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
+
+            - name: Create zip file
+              run: zip -r release.zip . --exclude .git/\* .github/\* .gitignore .vscode/\* store/\* dist/\* Makefile
+
+            - name: Create a Release
+              uses: elgohr/Github-Release-Action@v5
+              env:
+                GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+              with:
+                title:  TPscanner-ext ${{ steps.tag.outputs.version }}
+
+            - name: Upload to Chrome Web Store
+              uses: mobilefirstllc/cws-publish@latest
+              with:
+                action: 'upload'  # one of: upload, publish, testers
+                client_id: ${{ secrets.CLIENT }}
+                client_secret: ${{ secrets.SECRET }}
+                refresh_token: ${{ secrets.REFRESH_TOKEN }}
+                extension_id: 'IDllhmnhfolaejkpndgnhkkjmgnangfpia' 
+                zip_file: 'release.zip'
