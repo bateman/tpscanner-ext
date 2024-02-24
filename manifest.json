@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "TPScanner",
-    "version": "0.2.0",
+    "name": "TPscanner",
+    "version": "0.2.1",
     "description": "An extension that finds best deals on Trovaprezzi.it",
     "icons": {
         "48": "images/icon.png"
