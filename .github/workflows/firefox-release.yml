@@ -22,7 +22,7 @@ jobs:
               uses: trmcnvn/firefox-addon@v1
               with:
                 uuid: TPscanner@fcalefato.dev
-                xpi: dist/firefox/TPscanner-addon-${{ env.manifest | fromJson | .version }}.xpi
+                xpi: dist/firefox/TPscanner-addon-${{ fromJson(env.manifest).version }}.xpi
                 manifest: manifest.firefox.json
                 api-key: ${{ secrets.FIREFOX_API_KEY }}
                 api-secret: ${{ secrets.FIREFOX_API_SECRET }}
