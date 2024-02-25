@@ -23,14 +23,14 @@ firefox:
 	@echo "Building Firefox addon"
 	$(eval version=$(shell jq -r .version manifest.json))
 	mkdir -p ./dist/firefox > /dev/null
-	# cancel the last line of manifest.json
-	cat manifest.json | tail -r | tail -n +2 | tail -r > manifest.json.tmp
-	# append geckoid.manifest.json to manifest.json.tmp
-	cat manifest.json.tmp geckoid.manifest.json > manifest.json.tmp2
-	cp manifest.json manifest.json.tmp
-	mv manifest.json.tmp2 manifest.json
+	# rename default manifest.json
+	mv manifest.json manifest.json.tmp
+	# create a new manifest.json for Firefox
+	mv manifest.firefox.json manifest.json
 	zip -r -FS ./dist/firefox/$(APP_NAME)-addon-$(version).xpi . --exclude "*.tmp" "geckoid.manifest.json"  "*.git*" "Makefile" "README.md" "PRIVACY.md" "dist/*" ".DS_Store" "images/.DS_Store" ".vscode/*" "store/*"
 	zip -r -FS ./dist/firefox/$(APP_NAME)-addon-$(version)-sources.zip ./js/*
+	# restore default manifest.json
+	mv manifest.json manifest.firefox.json
 	mv manifest.json.tmp manifest.json
 
 safari:

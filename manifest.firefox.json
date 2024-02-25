@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "TPscanner",
+    "version": "0.3.0",
+    "description": "An extension that finds best deals on Trovaprezzi.it",
+    "icons": {
+        "48": "images/icon.png"
+    },
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://www.trovaprezzi.it/*",
+        "https://trovaprezzi.it/*"
+    ],
+    "action": {
+        "default_icon": "images/icon.png",
+        "default_popup": "html/popup.html"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "TPscanner@fcalefato.dev"
+        }
+    }
+}
