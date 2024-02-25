@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set tag
+              id: tag
+              run: echo "version=${shell jq -r .version manifest.json}" >> $GITHUB_OUTPUT
+              
+            - name: Create xpi
+              run: make firefox
+
+            - name: Upload to the Firefox Add-ons Store
+              uses: trmcnvn/firefox-addon@v1
+              with:
+                uuid: TPscanner@fcalefato.dev
+                xpi: dist/firefox/TPscanner-addon-${{ steps.tag.outputs.version }}.xpi
+                manifest: manifest.firefox.json
+                api-key: ${{ secrets.FIREFOX_API_KEY }}
+                api-secret: ${{ secrets.FIREFOX_API_SECRET }}
