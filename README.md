@@ -1,4 +1,4 @@
-# TPscanner
+# TPscanner <img src="images/icon.png" width="35">
 
 
 ![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
