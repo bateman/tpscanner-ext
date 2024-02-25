@@ -10,6 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+
+    document.getElementById("export").addEventListener('click', function() {
+        const timestamp = new Date().toISOString().replace(/:/g, '-').replace('T', '_').split('.')[0];
+        var wb = XLSX.utils.table_to_book(document.getElementById("bii"), { sheet: "Best individual deals" });
+        var ws = XLSX.utils.table_to_sheet(document.getElementById("bcd"));
+        XLSX.utils.book_append_sheet(wb, ws, "Best cumulative deals");
+        XLSX.writeFile(wb, "TPscanner_best-deals_" + timestamp + ".xlsx");
+    });
+
+
     // Select the first tab by default
     document.getElementById('tab-bii').click();
 

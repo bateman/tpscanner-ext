@@ -121,3 +121,23 @@ table td {
     padding: 0 10px;
     border: none;
 }
+
+button {
+    border-radius: 12px;
+    background-color: #dbedf6;
+    border: 1px solid #c9d8e0;
+    opacity: 1;
+    margin-top: 10px;
+}
+
+button:hover {
+    opacity: 0.9;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.box-buttons {
+    text-align: right;
+    border-top: 1px solid #175a7d;
+    display: block;
+    margin-top: 20px;
+}
