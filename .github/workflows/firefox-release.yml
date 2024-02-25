@@ -14,8 +14,8 @@ jobs:
             - name: Set tag
               id: tag
               run: |
-                echo "version=$(jq -r .version manifest.firefox.json)" >> $GITHUB_ENV
-                echo "The version is ${{ env.version }}"
+                echo "manifest=$(jq -c . < package.json)" >> $GITHUB_ENV
+                echo "${{ fromJson(env.manifest).version }}""
               
             - name: Create xpi
               run: make firefox
@@ -24,7 +24,7 @@ jobs:
               uses: trmcnvn/firefox-addon@v1
               with:
                 uuid: TPscanner@fcalefato.dev
-                xpi: dist/firefox/TPscanner-addon-${{ env.version }}.xpi
+                xpi: dist/firefox/TPscanner-addon-${{ fromJson(env.manifest).version }}.xpi
                 manifest: manifest.firefox.json
                 api-key: ${{ secrets.FIREFOX_API_KEY }}
                 api-secret: ${{ secrets.FIREFOX_API_SECRET }}
