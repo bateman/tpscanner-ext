@@ -18,7 +18,7 @@ jobs:
               run: echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
             - name: Create zip file
-              run: zip -r release.zip . --exclude .git/\* .github/\* .gitignore .vscode/\* store/\* dist/\* Makefile
+              run: zip -r release.zip . --exclude ".git/\*" ".github/\*" ".gitignore" ".vscode/\*" "store/\*" "dist/\*" "Makefile" "geckoid.manifest.json"
 
             - name: Create a Release
               uses: elgohr/Github-Release-Action@v5
@@ -27,12 +27,40 @@ jobs:
               with:
                 title:  TPscanner-ext ${{ steps.tag.outputs.version }}
 
+            - name: Create zip
+              run: make chrome
+            
             - name: Upload to Chrome Web Store
               uses: mobilefirstllc/cws-publish@latest
               with:
-                action: 'upload'  # one of: upload, publish, testers
+                action: 'publish'  # one of: upload, publish, testers
                 client_id: ${{ secrets.CLIENT }}
                 client_secret: ${{ secrets.SECRET }}
                 refresh_token: ${{ secrets.REFRESH_TOKEN }}
-                extension_id: 'IDllhmnhfolaejkpndgnhkkjmgnangfpia' 
-                zip_file: 'release.zip'
+                extension_id: 'apfbfjghmamodacdkkhoiabadlcgmikh' 
+                zip_file: 'dist/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip'
+              
+            - name: Create Firefox xpi
+              run: |
+                make firefox
+                mv manifest.json manifest.json.bak
+                mv manifest.firefox.json manifest.json
+
+            - name: Upload to the Firefox Add-ons Store
+              uses: wdzeng/firefox-addon@v1
+              with:
+                addon-guid: TPscanner@fcalefato.dev
+                xpi-path: dist/firefox/TPscanner-addon-${{ steps.tag.outputs.version }}.xpi
+                self-hosted: false
+                license: MIT
+                jwt-issuer: ${{ secrets.FIREFOX_API_KEY }}
+                jwt-secret: ${{ secrets.FIREFOX_API_SECRET }}
+
+            - name: Upload to the Edge Add-ons Store
+              uses: wdzeng/edge-addon@v1
+              with:
+                product-id: mgiijnhdenbgibgdffibiigpmnkgmboc
+                zip-path: dist/chrome/TPscanner-ext-${{ steps.tag.outputs.version }}.zip
+                client-id: ${{ secrets.EDGE_CLIENT_ID }}
+                client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
+                access-token-url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
