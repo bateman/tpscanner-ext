@@ -14,7 +14,7 @@ jobs:
             - name: Set tag
               id: tag
               run: |
-                echo "manifest=$(jq -c . < package.json)" >> $GITHUB_ENV
+                echo "manifest=$(jq -c . < manifest.firefox.json)" >> $GITHUB_ENV
                 echo "${{ fromJson(env.manifest).version }}""
               
             - name: Create xpi
