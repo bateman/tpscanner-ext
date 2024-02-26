@@ -72,7 +72,12 @@ function populatebBestInividualDealsTable(bII) {
             cellTotalPricePlusDelivery.textContent = itemDeals[i].total_price_plus_delivery.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add availability cell
             var cellAvailability = row.insertCell(7);
-            cellAvailability.innerHTML = itemDeals[i].availability ? 'Yes &#10003;' : 'No &#10007;';
+            let text = document.createTextNode(itemDeals[i].availability ? 'Yes ' : 'No ');
+            let symbol = document.createElement('span');
+            symbol.innerHTML = itemDeals[i].availability ? '&#10003;' : '&#10007;';
+            cellAvailability.innerHTML = '';
+            cellAvailability.appendChild(text);
+            cellAvailability.appendChild(symbol);
             // add seller cell
             var cellSeller = row.insertCell(8);
             var linkSeller = document.createElement('a');
@@ -89,7 +94,8 @@ function populatebBestInividualDealsTable(bII) {
             cellSeller.appendChild(document.createTextNode(')'));
             // add seller rating cell
             var cellSellerRating = row.insertCell(9);
-            cellSellerRating.innerHTML = itemDeals[i].seller_rating ? itemDeals[i].seller_rating.toFixed(1) + ' / 5 &#9733;' : 'N/A';
+            var ratingText = itemDeals[i].seller_rating ? itemDeals[i].seller_rating.toFixed(1) + ' / 5 \u2605' : 'N/A';
+            cellSellerRating.appendChild(document.createTextNode(ratingText));
         }
     }
 }
@@ -117,7 +123,8 @@ function populateBestCumulativeDealsTable(bCD) {
             cellSeller.appendChild(document.createTextNode(')'));
             // add rating cell
             var cellRating = row.insertCell(1);
-            cellRating.innerHTML = itemDeal.sellerRating? itemDeal.sellerRating.toFixed(1) + ' / 5 &#9733;' : 'N/A';
+            var ratingText = itemDeal.sellerRating ? itemDeal.sellerRating.toFixed(1) + ' / 5 \u2605' : 'N/A';
+            cellRating.textContent = ratingText;
             // add cumulative price cell
             var cellCumulativePrice = row.insertCell(2);
             cellCumulativePrice.textContent = itemDeal.cumulativePrice.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
@@ -133,7 +140,12 @@ function populateBestCumulativeDealsTable(bCD) {
             cellCumulativePricePlusDelivery.textContent = itemDeal.cumulativePricePlusDelivery.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add availability cell
             var cellAvailability = row.insertCell(6);
-            cellAvailability.innerHTML = itemDeal.availability ? 'Yes &#10003;' : 'No &#10007;';
+            let text = document.createTextNode(itemDeal.availability ? 'Yes ' : 'No ');
+            let symbol = document.createElement('span');
+            symbol.innerHTML = itemDeal.availability ? '&#10003;' : '&#10007;';
+            cellAvailability.innerHTML = '';
+            cellAvailability.appendChild(text);
+            cellAvailability.appendChild(symbol);
         }
     }
 }
