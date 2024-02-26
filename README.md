@@ -37,6 +37,11 @@ A cross-browser extension to find the best prices for items listed under [Trovap
 
 Contributions are welcome! Please submit a pull request or create an issue to contribute to this project.
 
+## Donations
+
+<a href="https://www.paypal.com/donate/?hosted_button_id=REPL55PWMND94"><img src="store/images/paypal-donate-button.png" title="Donate with PayPal" width=200 /></a>
+<a href="https://www.paypal.com/donate/?hosted_button_id=REPL55PWMND94"><img src="store/images/paypal-qr-code.png" title="Donate with PayPal" width=100 /></a>
+
 ## License
 
 This project is licensed under the MIT license, see the [LICENSE](LICENSE) file.
