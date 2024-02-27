@@ -25,7 +25,7 @@ SAFARI_DEV_ID := dev.fcalefato.$(APPNAME)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help clean tag/release tag/tag dep/chrome dep/firefox dep/edge dep/macos run/chrome run/edge run/firefox
+.PHONY: help clean tag/release tag/tag dep/chrome dep/firefox dep/edge dep/macos dep/xcode run/chrome run/edge run/firefox
 
 #-- Help
 
@@ -55,7 +55,7 @@ $(FIREFOX_BUILD_TIMESTAMP): $(SRC_FILES)
 	mv manifest.json.tmp manifest.json
 	touch $(FIREFOX_BUILD_TIMESTAMP)
 
-build/safari: dep/macos $(SAFARI_BUILD_TIMESTAMP)  ## Build Safari app-extension
+build/safari: dep/macos dep/xcode $(SAFARI_BUILD_TIMESTAMP)  ## Build Safari app-extension
 $(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES)
 	@echo "Building Safari extension"
 	$(eval version=$(shell jq -r .version manifest.json))
@@ -149,6 +149,10 @@ tag/delete:  ## Delete the tag for the current version
 	fi
 
 #-- Run
+
+dep/xcode:
+	@echo "Checking if Xcode is installed..."
+	@xcode-select -p || "echo 'Xcode is not installed.'"
 
 dep/macos:
 	@echo "Checking if OS is MacOS..."
