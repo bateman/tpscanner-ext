@@ -6,6 +6,11 @@
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
 ![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
 
+![Mozilla Add-on Version](https://img.shields.io/amo/v/TPscanner?style=for-the-badge)
+![Mozilla Add-on Users](https://img.shields.io/amo/users/TPscanner?style=for-the-badge)
+![Mozilla Add-on Downloads](https://img.shields.io/amo/dw/TPscanner?style=for-the-badge)
+![Mozilla Add-on Rating](https://img.shields.io/amo/rating/TPscanner%40fcalefato.dev?style=for-the-badge)
+![Mozilla Add-on Stars](https://img.shields.io/amo/stars/TPscanner%40fcalefato.dev?style=for-the-badge)
 
 A cross-browser extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
 
