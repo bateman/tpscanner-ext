@@ -22,7 +22,7 @@ jobs:
               uses: wdzeng/firefox-addon@v1
               with:
                 addon-guid: TPscanner@fcalefato.dev
-                xpi-path: dist/firefox/TPscanner-addon-${{ fromJson(env.manifest).version }}.xpi
+                xpi-path: build/firefox/TPscanner-addon-${{ fromJson(env.manifest).version }}.xpi
                 self-hosted: false
                 license: MIT
                 jwt-issuer: ${{ secrets.FIREFOX_API_KEY }}
