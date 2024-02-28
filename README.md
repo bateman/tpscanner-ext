@@ -12,6 +12,15 @@
 ![Mozilla Add-on Rating](https://img.shields.io/amo/rating/TPscanner%40fcalefato.dev?style=for-the-badge)
 ![Mozilla Add-on Stars](https://img.shields.io/amo/stars/TPscanner%40fcalefato.dev?style=for-the-badge)
 
+![GitHub manifest version](https://img.shields.io/github/manifest-json/v/bateman/tpscanner-ext?style=for-the-badge&label=MANIFEST)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bateman/tpscanner-ext/release.yml?style=for-the-badge)
+![GitHub Release](https://img.shields.io/github/v/release/bateman/tpscanner-ext?style=for-the-badge)
+
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bateman/tpscanner-ext?style=for-the-badge)
+![GitHub language count](https://img.shields.io/github/languages/count/bateman/tpscanner-ext?style=for-the-badge)
+![GitHub top language](https://img.shields.io/github/languages/top/bateman/tpscanner-ext?style=for-the-badge)
+![GitHub License](https://img.shields.io/github/license/bateman/tpscanner-ext?style=for-the-badge)
+
 A cross-browser extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
 
 <p align="center">
@@ -26,7 +35,7 @@ A cross-browser extension to find the best prices for items listed under [Trovap
         <img src="store/images/firefox-addons.png" alt="Avaliable as a Firefox Add-on" width="200" height="55">
     </a>
     <a href="">
-        <img src="store/images/microsoft-store.png" alt="Avaliable in the Microsoft Edge Add-ons Store" width="200" style="margin-bottom: 10px;margin-left:18px;">
+        <img src="store/images/microsoft-store.png" alt="Avaliable in the Microsoft Edge Add-ons Store" width="200">
     </a>
 </p>
 
