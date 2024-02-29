@@ -6,6 +6,8 @@ MAKEFLAGS += --no-builtin-rules
 
 APPNAME := TPscanner
 MANIFEST := manifest.json
+MANIFEST_FIREFOX := manifest.firefox.json
+MANIFEST_TMP := manifest.json.tmp
 VERSION := $(shell jq -r .version $(MANIFEST))
 DEFAULT_URL ?= "https://www.trovaprezzi.it"
 
@@ -51,16 +53,16 @@ $(FIREFOX_BUILD_TIMESTAMP): $(SRC_FILES)
 	@echo "Building Firefox addon"
 	@mkdir -p $(BUILD_DIR)/firefox/src/$(APPNAME)-addon-$(VERSION) > /dev/null
 	# rename default manifest.json
-	@mv manifest.json manifest.json.tmp
+	@mv $(MANIFEST) $(MANIFEST_TMP)
 	# create a new manifest.json for Firefox
-	@mv manifest.firefox.json manifest.json
+	@mv $(MANIFEST_FIREFOX) $(MANIFEST)
 	@zip -r -FS $(BUILD_DIR)/firefox/$(APPNAME)-addon-$(VERSION).xpi $(SRC) -x \*.DS_Store
 	@zip -r -FS $(BUILD_DIR)/firefox/$(APPNAME)-addon-$(VERSION)-sources.zip $(JS_FILES)
 	@cp -r $(SRC) $(BUILD_DIR)/firefox/src/$(APPNAME)-addon-$(VERSION)
 	@cp $(MANIFEST) $(BUILD_DIR)/firefox/src/$(APPNAME)-addon-$(VERSION)
 	# restore default manifest.json
-	@mv manifest.json manifest.firefox.json
-	@mv manifest.json.tmp manifest.json
+	@mv $(MANIFEST) $(MANIFEST_FIREFOX)
+	@mv $(MANIFEST_TMP) $(MANIFEST)
 	@touch $(FIREFOX_BUILD_TIMESTAMP)
 
 build/safari: dep/macos $(SAFARI_BUILD_TIMESTAMP)  ## Build Safari app-extension
@@ -70,11 +72,11 @@ $(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES)
 	@mkdir -p $(BUILD_DIR)/safari/build > /dev/null
 	@mkdir -p $(BUILD_DIR)/safari/src > /dev/null
 	@mkdir -p $(BUILD_DIR)/safari/pkg > /dev/null
-	@cp manifest.json $(BUILD_DIR)/safari/src 
-	@cp -r html $(BUILD_DIR)/safari/src 
-	@cp -r images $(BUILD_DIR)/safari/src 
-	@cp -r js $(BUILD_DIR)/safari/src 
-	@cp -r css $(BUILD_DIR)/safari/src 
+	@cp $(MANIFEST) $(BUILD_DIR)/safari/src 
+	@cp -r $(HTML) $(BUILD_DIR)/safari/src 
+	@cp -r $(IMAGES) $(BUILD_DIR)/safari/src 
+	@cp -r $(JS) $(BUILD_DIR)/safari/src 
+	@cp -r $(CSS) $(BUILD_DIR)/safari/src 
 	@xcrun safari-web-extension-converter $(BUILD_DIR)/safari/src --app-name "$(APPNAME)" --bundle-identifier "dev.fcalefato.$(APPNAME)" --project-location $(BUILD_DIR)/safari --no-prompt --no-open --force --macos-only
 	#cd $(BUILD_DIR)/safari/$(APPNAME) && xcodebuild -scheme $(APPNAME) -archivePath $(BUILD_DIR)/safari/build/$(APPNAME).xcarchive build
 	#cd $(BUILD_DIR)/safari/$(APPNAME) && xcodebuild archive -scheme $(APPNAME) -archivePath $(BUILD_DIR)/safari/build/$(APPNAME).xcarchive
@@ -113,27 +115,22 @@ build/all:  ## Build all extensions
 
 define update_version
 	@echo "Bump version from $(VERSION) to $(new_version)"
-	# replace the version in manifest.json with the new version
-	@cat manifest.json | sed -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(new_version)\"/" > manifest.json.tmp
-	@mv manifest.json.tmp manifest.json
-	# replace the version in manifest.firefox.json with the new version
-	@cat manifest.firefox.json | sed -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(new_version)\"/" > manifest.json.tmp
-	@mv manifest.json.tmp manifest.firefox.json
+	@cat $(MANIFEST) | sed -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(new_version)\"/" > $(MANIFEST_TMP)
+	@mv $(MANIFEST_TMP) $(MANIFEST)
+	@cat $(MANIFEST_FIREFOX) | sed -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(new_version)\"/" > $(MANIFEST_TMP)
+	@mv $(MANIFEST_TMP) $(MANIFEST_FIREFOX)
 	@touch $(RELEASE_TIMESTAMP)
 endef
 
-update/patch:  ## Bump patch semantic version in manifest*.json
-	# increment the patch version (e.g., 1.0.0 -> 1.0.1)
+update/patch:  ## Bump patch semantic version in manifest files (e.g., 1.0.0 -> 1.0.1)
 	$(eval new_version=$(shell echo $(VERSION) | awk -F. -v OFS=. '{$$NF++; print $$0}'))
 	$(call update_version)
 
-update/minor:  ## Bump minor semantic version in manifest*.json
-	# increment the minor version (e.g., 1.0.0 -> 1.1.0)
+update/minor:  ## Bump minor semantic version in manifest files (e.g., 1.0.0 -> 1.1.0)
 	$(eval new_version=$(shell echo $(VERSION) | awk -F. -v OFS=. '{$$(NF-1)++; $$NF=0; print $$0}'))
 	$(call update_version)
 
-update/major:  ## Bump major semantic version in manifest*.json
-	# increment the major version (e.g., 1.0.0 -> 2.0.0)
+update/major:  ## Bump major semantic version in manifest files (e.g., 1.0.0 -> 2.0.0)
 	$(eval new_version=$(shell echo $(VERSION) | awk -F. -v OFS=. '{$$1++; $$2=0; $$3=0; print $$0}'))
 	$(call update_version)
 
