@@ -12,7 +12,7 @@ VERSION := $(shell jq -r .version $(MANIFEST))
 DEFAULT_URL ?= "https://www.trovaprezzi.it"
 
 WORK_DIR := $(CURDIR)
-BUILD_DIR := $(WORK_DIR)
+BUILD_DIR := $(WORK_DIR)/build
 SAFARI_DIR := safari
 CHROME_DIR := chrome
 FIREFOX_DIR := firefox
