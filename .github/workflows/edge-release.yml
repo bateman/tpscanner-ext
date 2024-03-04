@@ -24,5 +24,5 @@ jobs:
                 access_token_url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
                 client_id: ${{ secrets.EDGE_CLIENT_ID }}
                 client_secret: ${{ secrets.EDGE_CLIENT_SECRET }}
-                product_id: mgiijnhdenbgibgdffibiigpmnkgmboc
+                product_id: ${{ secrets.EDGE_PRODUCT_ID }}
                 addon_file: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
