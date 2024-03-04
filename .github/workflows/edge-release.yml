@@ -19,7 +19,7 @@ jobs:
               run: make build/chrome
 
             - name: Upload to the Edge Add-ons Store         
-              uses: birchill/edge-addon-upload@v1
+              uses: birchill/edge-addon-upload@v1.0.0
               with:
                 access_token_url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
                 client_id: ${{ secrets.EDGE_CLIENT_ID }}
