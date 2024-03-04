@@ -34,7 +34,7 @@ A cross-browser extension to find the best prices for items listed under [Trovap
     <a href="https://addons.mozilla.org/addon/tpscanner">
         <img src="store/images/firefox-addons.png" alt="Avaliable as a Firefox Add-on" width="200" height="55">
     </a>
-    <a href="">
+    <a href="https://microsoftedge.microsoft.com/addons/detail/tpscanner/mgiijnhdenbgibgdffibiigpmnkgmboc">
         <img src="store/images/microsoft-store.png" alt="Avaliable in the Microsoft Edge Add-ons Store" width="200">
     </a>
 </p>
