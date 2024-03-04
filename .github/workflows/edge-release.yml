@@ -18,11 +18,11 @@ jobs:
             - name: Create Edge zip
               run: make build/chrome
 
-            - name: Upload to the Edge Add-ons Store
-              uses: wdzeng/edge-addon@v1
+            - name: Upload to the Edge Add-ons Store         
+              uses: birchill/edge-addon-upload@v1
               with:
-                product-id: mgiijnhdenbgibgdffibiigpmnkgmboc
-                zip-path: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
-                client-id: ${{ secrets.EDGE_CLIENT_ID }}
-                client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
-                access-token-url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
+                access_token_url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
+                client_id: ${{ secrets.EDGE_CLIENT_ID }}
+                client_secret: ${{ secrets.EDGE_CLIENT_SECRET }}
+                product_id: mgiijnhdenbgibgdffibiigpmnkgmboc
+                addon_file: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
