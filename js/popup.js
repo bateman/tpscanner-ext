@@ -197,21 +197,24 @@ function updateBestDealsMessage(individualDeals, cumulativeDeals) {
 async function updateImageSrc() {
     try {
         let [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-        if (tab.url && tab.url.startsWith("https://www.trovaprezzi.it")) {
-            await browser.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: function () {
-                    var xpath = './/a[@class="gallery_popup_link first" or @class="suggested_product"]/img';
-                    var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                    return result.singleNodeValue ? result.singleNodeValue.src : '';
-                }
-            }).then(([result] = []) => {
-                if (result.result) {
-                    document.getElementById('item-image').src = result.result;
-                }
-            }).catch((error) => {
-                console.error(error);
-            });
+        if (tab && tab.url) {
+            const url = new URL(tab.url).hostname;
+            if (url === "www.trovaprezzi.it") {
+                await browser.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    func: function () {
+                        var xpath = './/a[@class="gallery_popup_link first" or @class="suggested_product"]/img';
+                        var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+                        return result.singleNodeValue ? result.singleNodeValue.src : '';
+                    }
+                }).then(([result] = []) => {
+                    if (result.result) {
+                        document.getElementById('item-image').src = result.result;
+                    }
+                }).catch((error) => {
+                    console.error(error);
+                });
+            }
         }
     } catch (error) {
         console.error(error);
