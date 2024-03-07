@@ -34,6 +34,10 @@ a:hover {
     color: #3DA5D9;
 }
 
+a.no-decor:hover {
+    text-decoration: none;
+}
+
 .container {
     min-width: 800px;
     margin: 0 auto;
@@ -46,6 +50,9 @@ a:hover {
 }
 
 #header h1 {
+    display: inline;
+    position: relative;
+    top: -5px;
     margin: 0;
     font-size: 22px;
     font-weight: 700;

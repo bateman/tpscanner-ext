@@ -58,6 +58,10 @@ a:hover {
     color: #3DA5D9;
 }
 
+a.no-decor:hover {
+    text-decoration: none;
+}
+
 img.footer-gh {
     width: 10px;
     position: relative;
@@ -67,9 +71,14 @@ img.footer-gh {
 
 #header {
     display: flex;
+    margin-bottom: -8px;
 }
 
 #header h1 {
+    display: inline;
+    position: relative;
+    top: -5px;
+    left: -5px;
     margin: 0;
     font-size: 22px;
     font-weight: 700;
