@@ -24,6 +24,8 @@ function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
             bestIndividualDeals.push(itemDeals[i]);
         }
     }
+    // sort best deals by total price plus delivery
+    bestIndividualDeals.sort((a, b) => a.total_price_plus_delivery - b.total_price_plus_delivery);
     return bestIndividualDeals;
 }
 
