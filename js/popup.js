@@ -107,7 +107,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var cellTitle = row.insertCell(0);
             var link = document.createElement('a');
-            link.href = url;
+            try {
+                link.href = new URL(url).toString();
+            } catch (e) {
+                console.error(e);
+                link.href = "https://www.trovaprezzi.it";
+            }
             link.textContent = title;
             link.target = '_blank';
             cellTitle.appendChild(link);
