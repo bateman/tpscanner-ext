@@ -19,6 +19,7 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bateman/tpscanner-ext?style=for-the-badge)
 ![GitHub language count](https://img.shields.io/github/languages/count/bateman/tpscanner-ext?style=for-the-badge)
 ![GitHub top language](https://img.shields.io/github/languages/top/bateman/tpscanner-ext?style=for-the-badge)
+![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/bateman/tpscanner-ext?style=for-the-badge)
 ![GitHub License](https://img.shields.io/github/license/bateman/tpscanner-ext?style=for-the-badge)
 
 A cross-browser extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
