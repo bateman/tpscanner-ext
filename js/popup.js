@@ -136,6 +136,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 delete selectedItems[title];
                 localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
                 itemsTable.deleteRow(row.rowIndex - 1);
+                // Clear the box-deals message when an item is removed from the list
+                updateBestDealsMessage(null, null);
             });
             cellBtn.appendChild(removeButton);
         }
