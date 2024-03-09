@@ -1,16 +1,40 @@
+# Shell config
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
+# Make config
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
+# Executables
+MAKE_VERSION := $(shell make --version | head -n 1 2> /dev/null)
+SED := $(shell command -v sed 2> /dev/null)
+SED_INPLACE := $(shell if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i"; else echo "$(SED) -i ''"; fi)
+AWK := $(shell command -v awk 2> /dev/null)
+GIT := $(shell command -v git 2> /dev/null)
+GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+
+# Apps
+CHROME_APP := Google Chrome.app
+FIREFOX_APP := Firefox Developer Edition.app
+EDGE_APP := Microsoft Edge.app
+SAFARI_APP := Safari.app
+
+# Project variables
 MANIFEST := manifest.json
-APPNAME := $(shell jq -r .name $(MANIFEST) | tr -d '[:space:]' | tr -d '"')
 MANIFEST_FIREFOX := manifest.firefox.json
 MANIFEST_TMP := manifest.json.tmp
-VERSION := $(shell jq -r .version $(MANIFEST))
+APP_NAME := $(shell jq -r .name $(MANIFEST) | tr -d '[:space:]' | tr -d '"')
+APP_DESCRIPTION := $(shell jq -r .description $(MANIFEST))
+APP_VERSION := $(shell jq -r .version $(MANIFEST))
+APP_LICENSE := $(shell head -n 1 LICENSE)
+PROJECT_REPO ?= $(shell url=$$($(GIT) config --get remote.origin.url); echo $${url%.git})
+GITHUB_USER_NAME ?= $(shell echo $(PROJECT_REPO) | $(AWK) -F/ 'NF>=4{print $$4}')
+GITHUB_USER_EMAIL ?= $(shell $(GIT) config --get user.email || echo '')
 DEFAULT_URL ?= "https://www.trovaprezzi.it"
+SAFARI_DEV_ID := dev.fcalefato.$(APP_NAME)
 
+# Dirs
 WORK_DIR := $(CURDIR)
 BUILD_DIR := $(WORK_DIR)/build
 SAFARI_DIR := safari
@@ -21,24 +45,18 @@ JS := js
 IMAGES := images
 HTML := html
 
+# Files
 SRC := $(CSS) $(JS) $(IMAGES) $(HTML) $(MANIFEST)
 SRC_FILES := $(shell find $(SRC) -type f)
 JS_FILES := $(wildcard $(JS)/*.js)
 
+# Stamp files
 RELEASE_TIMESTAMP := .release.stamp
 CHROME_BUILD_TIMESTAMP := .chrome.stamp
 FIREFOX_BUILD_TIMESTAMP := .firefox.stamp
 SAFARI_BUILD_TIMESTAMP := .safari.stamp
 
-SAFARI_DEV_ID := dev.fcalefato.$(APPNAME)
-
-CHROME_APP := Google Chrome.app
-FIREFOX_APP := Firefox Developer Edition.app
-EDGE_APP := Microsoft Edge.app
-SAFARI_APP := Safari.app
-
-.DEFAULT_GOAL := help
-
+# Colors
 RESET := \033[0m
 RED := \033[0;31m
 GREEN := \033[0;32m
@@ -46,28 +64,46 @@ ORANGE := \033[0;33m
 MAGENTA := \033[0;35m
 CYAN := \033[0;36m
 
-#-- Help
+#-- Info
 
+.DEFAULT_GOAL := help
 .PHONY: help
 help:  ## Show this help message
-	@echo -e "\n$(MAGENTA)$(APPNAME) v$(VERSION) Makefile$(RESET)"
+	@echo -e "\n$(MAGENTA)$(APP_NAME) v$(APP_VERSION) Makefile$(RESET)"
 	@echo -e "\n$(MAGENTA)Usage:\n$(RESET) make $(CYAN)[target]$(RESET)\n"
 	@grep -E '^[0-9a-zA-Z_-]+(/?[0-9a-zA-Z_-]*)*:.*?## .*$$|(^#--)' $(MAKEFILE_LIST) \
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m %-15s\033[0m %s\n", $$1, $$2}' \
 	| sed -e 's/\[36m #-- /\[35m/'
+
+.PHONY: info
+info: ## Show development environment info
+	@echo -e "$(MAGENTA)\nSystem:$(RESET)"
+	@echo -e "  $(CYAN)OS:$(RESET) $(shell uname -s)"
+	@echo -e "  $(CYAN)Shell:$(RESET) $(SHELL) - $(shell $(SHELL) --version | head -n 1)"
+	@echo -e "  $(CYAN)Make:$(RESET) $(MAKE_VERSION)"
+	@echo -e "  $(CYAN)Git:$(RESET) $(GIT_VERSION)"
+	@echo -e "$(MAGENTA)Project:$(RESET)"
+	@echo -e "  $(CYAN)Project name:$(RESET) $(APP_NAME)"
+	@echo -e "  $(CYAN)Project description:$(RESET) $(APP_DESCRIPTION)"
+	@echo -e "  $(CYAN)Project version:$(RESET) $(APP_VERSION)"
+	@echo -e "  $(CYAN)Project license:$(RESET) $(APP_LICENSE)"
+	@echo -e "$(MAGENTA)Git:$(RESET)"
+	@echo -e "  $(CYAN)Project author:$(RESET) $(GITHUB_USER_NAME) <$(GITHUB_USER_EMAIL)>"
+	@echo -e "  $(CYAN)Project directory:$(RESET) $(CURDIR)"
+	@echo -e "  $(CYAN)Project repository:$(RESET) $(PROJECT_REPO)"
 
 #-- Build targets
 
 build/firefox: $(FIREFOX_BUILD_TIMESTAMP)  ## Build Firefox addon XPI and sources
 $(FIREFOX_BUILD_TIMESTAMP): $(SRC_FILES)
 	@echo -e "$(CYAN)\nBuilding Firefox addon...$(RESET)"
-	@mkdir -p $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APPNAME)-addon-$(VERSION) > /dev/null
+	@mkdir -p $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APP_NAME)-addon-$(APP_VERSION) > /dev/null
 	@mv $(MANIFEST) $(MANIFEST_TMP)
 	@mv $(MANIFEST_FIREFOX) $(MANIFEST)
-	@zip -r -FS $(BUILD_DIR)/$(FIREFOX_DIR)/$(APPNAME)-addon-$(VERSION).xpi $(SRC) -x \*.DS_Store
-	@zip -r -FS $(BUILD_DIR)/$(FIREFOX_DIR)/$(APPNAME)-addon-$(VERSION)-sources.zip $(JS_FILES)
-	@cp -r $(SRC) $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APPNAME)-addon-$(VERSION)
-	@cp $(MANIFEST) $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APPNAME)-addon-$(VERSION)
+	@zip -r -FS $(BUILD_DIR)/$(FIREFOX_DIR)/$(APP_NAME)-addon-$(APP_VERSION).xpi $(SRC) -x \*.DS_Store
+	@zip -r -FS $(BUILD_DIR)/$(FIREFOX_DIR)/$(APP_NAME)-addon-$(APP_VERSION)-sources.zip $(JS_FILES)
+	@cp -r $(SRC) $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APP_NAME)-addon-$(APP_VERSION)
+	@cp $(MANIFEST) $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APP_NAME)-addon-$(APP_VERSION)
 	@mv $(MANIFEST) $(MANIFEST_FIREFOX)
 	@mv $(MANIFEST_TMP) $(MANIFEST)
 	@touch $(FIREFOX_BUILD_TIMESTAMP)
@@ -85,13 +121,13 @@ $(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES)
 	@cp -r $(IMAGES) $(BUILD_DIR)/$(SAFARI_DIR)/src 
 	@cp -r $(JS) $(BUILD_DIR)/$(SAFARI_DIR)/src 
 	@cp -r $(CSS) $(BUILD_DIR)/$(SAFARI_DIR)/src 
-	@xcrun safari-web-extension-converter $(BUILD_DIR)/$(SAFARI_DIR)/src --app-name "$(APPNAME)" --bundle-identifier "dev.fcalefato.$(APPNAME)" --project-location $(BUILD_DIR)/$(SAFARI_DIR) --no-prompt --no-open --force --macos-only
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME) && xcodebuild -scheme $(APPNAME) -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APPNAME).xcarchive build
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME) && xcodebuild archive -scheme $(APPNAME) -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APPNAME).xcarchive
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME) && xcodebuild -exportArchive -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APPNAME).xcarchive -exportPath $(BUILD_DIR)/$(SAFARI_DIR)/pkg/$(APPNAME).pkg -exportOptionsPlist ExportOptions.plist
-	@cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME) &&  xcodebuild -target $(APPNAME) -configuration Release clean build
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME) &&  pkgbuild --root build/Release --identifier "$(SAFARI_DEV_ID)" --version $(VERSION) ../pkg/$(APPNAME)-$(VERSION).pkg
-	@zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME)-appex-$(VERSION).zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME)/build/Release/$(APPNAME).app
+	@xcrun safari-web-extension-converter $(BUILD_DIR)/$(SAFARI_DIR)/src --app-name "$(APP_NAME)" --bundle-identifier "dev.fcalefato.$(APP_NAME)" --project-location $(BUILD_DIR)/$(SAFARI_DIR) --no-prompt --no-open --force --macos-only
+	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && xcodebuild -scheme $(APP_NAME) -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APP_NAME).xcarchive build
+	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && xcodebuild archive -scheme $(APP_NAME) -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APP_NAME).xcarchive
+	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && xcodebuild -exportArchive -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APP_NAME).xcarchive -exportPath $(BUILD_DIR)/$(SAFARI_DIR)/pkg/$(APP_NAME).pkg -exportOptionsPlist ExportOptions.plist
+	@cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) &&  xcodebuild -target $(APP_NAME) -configuration Release clean build
+	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) &&  pkgbuild --root build/Release --identifier "$(SAFARI_DEV_ID)" --version $(APP_VERSION) ../pkg/$(APP_NAME)-$(APP_VERSION).pkg
+	@zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)-appex-$(APP_VERSION).zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)/build/Release/$(APP_NAME).app
 	@touch $(SAFARI_BUILD_TIMESTAMP)
 	@echo -e "$(GREEN)Done.$(RESET)"
 
@@ -99,7 +135,7 @@ build/chrome: $(CHROME_BUILD_TIMESTAMP)  ## Build Chrome extension zip
 $(CHROME_BUILD_TIMESTAMP): $(SRC_FILES)
 	@echo -e "$(CYAN)\nBuilding Chrome extension...$(RESET)"
 	@mkdir -p $(BUILD_DIR)/$(CHROME_DIR) > /dev/null
-	@zip -r -FS $(BUILD_DIR)/$(CHROME_DIR)/$(APPNAME)-ext-$(VERSION).zip $(SRC) -x \*.DS_Store
+	@zip -r -FS $(BUILD_DIR)/$(CHROME_DIR)/$(APP_NAME)-ext-$(APP_VERSION).zip $(SRC) -x \*.DS_Store
 	@touch $(CHROME_BUILD_TIMESTAMP)
 	@echo -e "$(GREEN)Done$(RESET)"
 
@@ -126,7 +162,7 @@ build/all:  ## Build all extensions
 #-- Update version
 
 define update_version
-	@echo -e "$(CYAN)\nBump version from $(VERSION) to $(new_version).$(RESET)"
+	@echo -e "$(CYAN)\nBump version from $(APP_VERSION) to $(new_version).$(RESET)"
 	@cat $(MANIFEST) | sed -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(new_version)\"/" > $(MANIFEST_TMP)
 	@mv $(MANIFEST_TMP) $(MANIFEST)
 	@cat $(MANIFEST_FIREFOX) | sed -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(new_version)\"/" > $(MANIFEST_TMP)
@@ -135,15 +171,15 @@ define update_version
 endef
 
 update/patch:  ## Bump patch semantic version in manifest files (e.g., 1.0.0 -> 1.0.1)
-	$(eval new_version=$(shell echo $(VERSION) | awk -F. -v OFS=. '{$$NF++; print $$0}'))
+	$(eval new_version=$(shell echo $(APP_VERSION) | awk -F. -v OFS=. '{$$NF++; print $$0}'))
 	$(call update_version)
 
 update/minor:  ## Bump minor semantic version in manifest files (e.g., 1.0.0 -> 1.1.0)
-	$(eval new_version=$(shell echo $(VERSION) | awk -F. -v OFS=. '{$$(NF-1)++; $$NF=0; print $$0}'))
+	$(eval new_version=$(shell echo $(APP_VERSION) | awk -F. -v OFS=. '{$$(NF-1)++; $$NF=0; print $$0}'))
 	$(call update_version)
 
 update/major:  ## Bump major semantic version in manifest files (e.g., 1.0.0 -> 2.0.0)
-	$(eval new_version=$(shell echo $(VERSION) | awk -F. -v OFS=. '{$$1++; $$2=0; $$3=0; print $$0}'))
+	$(eval new_version=$(shell echo $(APP_VERSION) | awk -F. -v OFS=. '{$$1++; $$2=0; $$3=0; print $$0}'))
 	$(call update_version)
 
 #-- Tagging
@@ -153,19 +189,19 @@ tag/release: $(RELEASE_TIMESTAMP) ## Tag the current version and push to origin
 $(RELEASE_TIMESTAMP): $(MANIFEST)
 	@echo -e "$(CYAN)\nPushing pending commits to origin...$(RESET)"
 	@git push origin main
-	@echo -e "$(CYAN)\nTagging version $(VERSION) and pushing to origin...$(RESET)"
-	@git tag $(VERSION)
-	@git push origin $(VERSION)
+	@echo -e "$(CYAN)\nTagging version $(APP_VERSION) and pushing to origin...$(RESET)"
+	@git tag $(APP_VERSION)
+	@git push origin $(APP_VERSION)
 	@echo -e "$(GREEN)Done.$(RESET)"
 
 .PHONY: tag/delete 
 tag/delete:  ## Delete the tag for the current version
-	$(eval tag_exists=$(shell git rev-parse $(VERSION) >/dev/null 2>&1 && echo 1 || echo 0))
+	$(eval tag_exists=$(shell git rev-parse $(APP_VERSION) >/dev/null 2>&1 && echo 1 || echo 0))
 	@if [ "$(tag_exists)" = "1" ]; then \
-		@echo -e "$(CYAN)\nDeleting tag $(VERSION).$(RESET)"; \
-		git tag -d $(VERSION) 2>/dev/null && git push origin :refs/tags/$(VERSION); \
+		@echo -e "$(CYAN)\nDeleting tag $(APP_VERSION).$(RESET)"; \
+		git tag -d $(APP_VERSION) 2>/dev/null && git push origin :refs/tags/$(APP_VERSION); \
 	else \
-		@echo -e "$(ORANGE)Current $(VERSION) is not tagged.$(RESET)"; \
+		@echo -e "$(ORANGE)Current $(APP_VERSION) is not tagged.$(RESET)"; \
 	fi
 
 #-- Run
@@ -249,11 +285,11 @@ run/edge: dep/edge   ## Run Edge extension (use DEFAULT_URL="..." to set the ope
 run/firefox: dep/firefox build/firefox ## Run Firefox addon in development mode (use DEFAULT_URL="..." to set the opening page)
 	@echo -e "$(CYAN)\nRunning Firefox addon...$(RESET)"
 	@cd $(BUILD_DIR)/$(FIREFOX_DIR)/src && web-ext run --firefox="/Applications/$(FIREFOX_APP)/Contents/MacOS/firefox" \
-		--source-dir=$(APPNAME)-addon-$(VERSION) \
+		--source-dir=$(APP_NAME)-addon-$(APP_VERSION) \
 		--start-url=$(DEFAULT_URL)
 
 .PHONY: run/safari
 run/safari: dep/safari build/safari  ## Run Safari app-extension 
 	@echo -e "$(CYAN)\nRunning Safari app-extension...$(RESET)"
 	@echo -e "${ORANGE}Note that the extension is not signed, you need to go to 'Settings' > Select 'Developer' tab > Check the 'Allow unsigned extensions' box.${RESET}"
-	@open -a $(BUILD_DIR)/$(SAFARI_DIR)/$(APPNAME)/build/Release/$(APPNAME).app
+	@open -a $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)/build/Release/$(APP_NAME).app
