@@ -34,7 +34,7 @@ jobs:
               uses: wdzeng/chrome-extension@v1
               with:
                 extension-id: apfbfjghmamodacdkkhoiabadlcgmikh
-                zip-path: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
+                zip-path: build/chrome/TPscanner-ext-${{ steps.tag.outputs.version }}.zip
                 client-id: ${{ secrets.CLIENT }}
                 client-secret: ${{ secrets.SECRET }}
                 refresh-token: ${{ secrets.REFRESH_TOKEN }}
