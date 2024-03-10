@@ -11,8 +11,8 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set tag
-              id: tag
+            - name: Set version
+              id: version
               run: echo "manifest=$(jq -c . < manifest.json)" >> $GITHUB_ENV
 
             - name: Create zip

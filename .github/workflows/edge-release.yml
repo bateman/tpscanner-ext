@@ -11,8 +11,8 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set tag
-              id: tag
+            - name: Set version
+              id: version
               run: echo "manifest=$(jq -c . < manifest.json)" >> $GITHUB_ENV
 
             - name: Create Edge zip
@@ -22,7 +22,7 @@ jobs:
               uses: wdzeng/edge-addon@v1
               with:
                 product-id: ${{ secrets.EDGE_PRODUCT_ID }}
-                zip-path: build/chrome/TPscanner-ext-${{ steps.tag.outputs.version }}.zip
+                zip-path: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
                 client-id: ${{ secrets.EDGE_CLIENT_ID }}
                 client-secret: ${{ secrets.EDGE_CLIENT_SECRET }}
                 access-token-url: ${{ secrets.EDGE_ACCESS_TOKEN_URL }}
