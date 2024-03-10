@@ -13,6 +13,9 @@ SED_INPLACE := $(shell if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i
 AWK := $(shell command -v awk 2> /dev/null)
 GIT := $(shell command -v git 2> /dev/null)
 GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+XCRUN := $(shell command -v xcrun 2> /dev/null)
+XCRUN_VERSION := $(shell $(XCRUN) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+XCODEBUILD := $(shell command -v xcodebuild 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
 
 # Apps
 CHROME_APP := Google Chrome.app
@@ -79,12 +82,14 @@ help:  ## Show this help message
 	| $(SED) -e 's/\[36m #-- /\[35m/'
 
 .PHONY: info
-info: ## Show development environment info
+info:  ## Show development environment info
 	@echo -e "$(MAGENTA)\nSystem:$(RESET)"
 	@echo -e "  $(CYAN)OS:$(RESET) $(shell uname -s)"
 	@echo -e "  $(CYAN)Shell:$(RESET) $(SHELL) - $(shell $(SHELL) --version | head -n 1)"
 	@echo -e "  $(CYAN)Make:$(RESET) $(MAKE_VERSION)"
 	@echo -e "  $(CYAN)Git:$(RESET) $(GIT_VERSION)"
+	@echo -e "  $(CYAN)xcrun:$(RESET) $(XCRUN_VERSION)"
+	@echo -e "  $(CYAN)xcodebuild:$(RESET) $(XCODEBUILD)"
 	@echo -e "$(MAGENTA)Project:$(RESET)"
 	@echo -e "  $(CYAN)Project name:$(RESET) $(APP_NAME)"
 	@echo -e "  $(CYAN)Project description:$(RESET) $(APP_DESCRIPTION)"
@@ -162,12 +167,8 @@ $(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES)
 	@cp -r $(IMAGES) $(BUILD_DIR)/$(SAFARI_DIR)/src 
 	@cp -r $(JS) $(BUILD_DIR)/$(SAFARI_DIR)/src 
 	@cp -r $(CSS) $(BUILD_DIR)/$(SAFARI_DIR)/src 
-	@xcrun safari-web-extension-converter $(BUILD_DIR)/$(SAFARI_DIR)/src --app-name "$(APP_NAME)" --bundle-identifier "dev.fcalefato.$(APP_NAME)" --project-location $(BUILD_DIR)/$(SAFARI_DIR) --no-prompt --no-open --force --macos-only
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && xcodebuild -scheme $(APP_NAME) -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APP_NAME).xcarchive build
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && xcodebuild archive -scheme $(APP_NAME) -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APP_NAME).xcarchive
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && xcodebuild -exportArchive -archivePath $(BUILD_DIR)/$(SAFARI_DIR)/build/$(APP_NAME).xcarchive -exportPath $(BUILD_DIR)/$(SAFARI_DIR)/pkg/$(APP_NAME).pkg -exportOptionsPlist ExportOptions.plist
-	@cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) &&  xcodebuild -target $(APP_NAME) -configuration Release clean build
-	#cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) &&  pkgbuild --root build/Release --identifier "$(SAFARI_DEV_ID)" --version $(APP_VERSION) ../pkg/$(APP_NAME)-$(APP_VERSION).pkg
+	@$(XCRUN) safari-web-extension-converter $(BUILD_DIR)/$(SAFARI_DIR)/src --app-name "$(APP_NAME)" --bundle-identifier "dev.fcalefato.$(APP_NAME)" --project-location $(BUILD_DIR)/$(SAFARI_DIR) --no-prompt --no-open --force --macos-only
+	@cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && $(XCODEBUILD) -quiet -target $(APP_NAME) -configuration Release clean build
 	@zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)-appex-$(APP_VERSION).zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)/build/Release/$(APP_NAME).app
 	@touch $(SAFARI_BUILD_TIMESTAMP)
 	@echo -e "$(GREEN)Done.$(RESET)"
@@ -184,7 +185,7 @@ buid/edge:  ## Build Edge extension zip (same as Chrome)
 	$(MAKE) build/chrome
 
 .PHONY: clean
-build/clean:  # Clean up build directory and remove all timestamps
+build/clean:  ## Clean up build directory and remove all timestamps
 	@echo -e "$(CYAN)\nCleaning up $(BUILD_DIR) directory...$(RESET)"
 	@rm -rf $(BUILD_DIR)/$(FIREFOX_DIR)
 	@rm -rf $(BUILD_DIR)/$(SAFARI_DIR)
@@ -303,7 +304,7 @@ run/chrome: | dep/chrome  ## Run Chrome extension in development mode (use DEFAU
 		$(DEFAULT_URL)
 
 .PHONY: run/edge
-run/edge: | dep/edge   ## Run Edge extension (use DEFAULT_URL="..." to set the opening page)
+run/edge: | dep/edge  ## Run Edge extension (use DEFAULT_URL="..." to set the opening page)
 	@echo -e "$(CYAN)\nOpening Edge extension...$(RESET)"
 	@echo -e "${ORANGE}Make sure Edge is not already running. (Note: Edge does not support development mode for extensions).${RESET}"
 	@open -a "$(EDGE_APP)" --args \
@@ -324,7 +325,7 @@ run/edge: | dep/edge   ## Run Edge extension (use DEFAULT_URL="..." to set the o
 		$(DEFAULT_URL)
 
 .PHONY: run/firefox
-run/firefox: | dep/firefox build/firefox ## Run Firefox addon in development mode (use DEFAULT_URL="..." to set the opening page)
+run/firefox: | dep/firefox build/firefox  ## Run Firefox addon in development mode (use DEFAULT_URL="..." to set the opening page)
 	@echo -e "$(CYAN)\nRunning Firefox addon...$(RESET)"
 	@cd $(BUILD_DIR)/$(FIREFOX_DIR)/src && web-ext run --firefox="/Applications/$(FIREFOX_APP)/Contents/MacOS/firefox" \
 		--source-dir=$(APP_NAME)-addon-$(APP_VERSION) \
