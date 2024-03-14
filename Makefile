@@ -140,8 +140,9 @@ dep/safari: | dep/macos
 
 #-- Build targets
 
+.PHONY: build/firefox
 build/firefox: $(FIREFOX_BUILD_TIMESTAMP)  ## Build Firefox addon XPI and sources
-$(FIREFOX_BUILD_TIMESTAMP): $(SRC_FILES)
+$(FIREFOX_BUILD_TIMESTAMP): $(SRC_FILES) $(MANIFEST_FIREFOX)
 	@echo -e "$(CYAN)\nBuilding Firefox addon...$(RESET)"
 	@mkdir -p $(BUILD_DIR)/$(FIREFOX_DIR)/src/$(APP_NAME)-addon-$(APP_VERSION) > /dev/null
 	@mv $(MANIFEST) $(MANIFEST_TMP)
@@ -155,8 +156,9 @@ $(FIREFOX_BUILD_TIMESTAMP): $(SRC_FILES)
 	@touch $(FIREFOX_BUILD_TIMESTAMP)
 	@echo -e "$(GREEN)Done.$(RESET)"
 
+.PHONY: build/safari
 build/safari: dep/macos $(SAFARI_BUILD_TIMESTAMP)  ## Build Safari app-extension
-$(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES)
+$(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES) $(MANIFEST)
 	@echo -e "$(CYAN)\nBuilding Safari app extension...$(RESET)"
 	@mkdir -p $(BUILD_DIR)/$(SAFARI_DIR) > /dev/null
 	@mkdir -p $(BUILD_DIR)/$(SAFARI_DIR)/build > /dev/null
@@ -173,19 +175,21 @@ $(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES)
 	@touch $(SAFARI_BUILD_TIMESTAMP)
 	@echo -e "$(GREEN)Done.$(RESET)"
 
+.PHONY: build/chrome
 build/chrome: $(CHROME_BUILD_TIMESTAMP)  ## Build Chrome extension zip
-$(CHROME_BUILD_TIMESTAMP): $(SRC_FILES)
+$(CHROME_BUILD_TIMESTAMP): $(SRC_FILES) $(MANIFEST)
 	@echo -e "$(CYAN)\nBuilding Chrome extension...$(RESET)"
 	@mkdir -p $(BUILD_DIR)/$(CHROME_DIR) > /dev/null
 	@zip -r -FS $(BUILD_DIR)/$(CHROME_DIR)/$(APP_NAME)-ext-$(APP_VERSION).zip $(SRC) -x \*.DS_Store
 	@touch $(CHROME_BUILD_TIMESTAMP)
 	@echo -e "$(GREEN)Done$(RESET)"
 
+.PHONY: build/edge
 buid/edge:  ## Build Edge extension zip (same as Chrome)
 	$(MAKE) build/chrome
 
 .PHONY: clean
-build/clean:  ## Clean up build directory and remove all timestamps
+build/clean:  # Clean up build directory and remove all timestamps
 	@echo -e "$(CYAN)\nCleaning up $(BUILD_DIR) directory...$(RESET)"
 	@rm -rf $(BUILD_DIR)/$(FIREFOX_DIR)
 	@rm -rf $(BUILD_DIR)/$(SAFARI_DIR)
@@ -193,6 +197,7 @@ build/clean:  ## Clean up build directory and remove all timestamps
 	@rm -f $(STAMP_FILES)
 	@echo -e "$(GREEN)Done.$(RESET)"
 
+.PHONY: build/all
 build/all:  ## Build all extensions
 	@echo -e "$(CYAN)\nBuilding all extensions...$(RESET)"
 	$(MAKE) build/chrome 
@@ -304,7 +309,7 @@ run/chrome: | dep/chrome  ## Run Chrome extension in development mode (use DEFAU
 		$(DEFAULT_URL)
 
 .PHONY: run/edge
-run/edge: | dep/edge  ## Run Edge extension (use DEFAULT_URL="..." to set the opening page)
+run/edge: | dep/edge   ## Run Edge extension (use DEFAULT_URL="..." to set the opening page)
 	@echo -e "$(CYAN)\nOpening Edge extension...$(RESET)"
 	@echo -e "${ORANGE}Make sure Edge is not already running. (Note: Edge does not support development mode for extensions).${RESET}"
 	@open -a "$(EDGE_APP)" --args \
@@ -325,7 +330,7 @@ run/edge: | dep/edge  ## Run Edge extension (use DEFAULT_URL="..." to set the op
 		$(DEFAULT_URL)
 
 .PHONY: run/firefox
-run/firefox: | dep/firefox build/firefox  ## Run Firefox addon in development mode (use DEFAULT_URL="..." to set the opening page)
+run/firefox: | dep/firefox build/firefox ## Run Firefox addon in development mode (use DEFAULT_URL="..." to set the opening page)
 	@echo -e "$(CYAN)\nRunning Firefox addon...$(RESET)"
 	@cd $(BUILD_DIR)/$(FIREFOX_DIR)/src && web-ext run --firefox="/Applications/$(FIREFOX_APP)/Contents/MacOS/firefox" \
 		--source-dir=$(APP_NAME)-addon-$(APP_VERSION) \
@@ -336,3 +341,4 @@ run/safari: | dep/safari build/safari  ## Run Safari app-extension
 	@echo -e "$(CYAN)\nRunning Safari app-extension...$(RESET)"
 	@echo -e "${ORANGE}Note that the extension is not signed, you need to go to 'Settings' > Select 'Developer' tab > Check the 'Allow unsigned extensions' box.${RESET}"
 	@open -a $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)/build/Release/$(APP_NAME).app
+	
