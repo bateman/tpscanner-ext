@@ -51,6 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.log('Found ', deals.length, ' deals for ', title);
                     localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
                     addItemToList(title, url, quantity);
+                    // Clear the best deals local storage
+                    localStorage.setItem('bestIndividualDeals', JSON.stringify({}));
+                    localStorage.setItem('bestCumulativeDeals', JSON.stringify({}));
+                    // Clear the box-deals message
+                    updateBestDealsMessage(null, null);
                 }).catch(error => {
                     console.error('An error occurred adding an item to the basket: ', error);
                 });                
@@ -65,10 +70,9 @@ document.addEventListener('DOMContentLoaded', function () {
             for(let i = rows.length - 1; i > 0; i--) {
                 rows[i].parentNode.removeChild(rows[i]);
             }
-            bII = {};
-            bCD = {};
-            localStorage.setItem('bestIndividualDeals', JSON.stringify(bII));
-            localStorage.setItem('bestCumulativeDeals', JSON.stringify(bCD));
+            // Clear the best deals local storage
+            localStorage.setItem('bestIndividualDeals', JSON.stringify({}));
+            localStorage.setItem('bestCumulativeDeals', JSON.stringify({}));
             // Clear the box-deals message
             updateBestDealsMessage(null, null);
         });
@@ -138,6 +142,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 itemsTable.deleteRow(row.rowIndex - 1);
                 // Clear the box-deals message when an item is removed from the list
                 updateBestDealsMessage(null, null);
+                // Update storage with no deals
+                localStorage.setItem('bestIndividualDeals', JSON.stringify({}));
+                localStorage.setItem('bestCumulativeDeals', JSON.stringify({}));
+
             });
             cellBtn.appendChild(removeButton);
         }
