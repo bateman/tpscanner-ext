@@ -1,26 +1,28 @@
 # TPscanner <img src="images/icon.png" width="35">
 
 
-![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
-![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
-![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
-![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/apfbfjghmamodacdkkhoiabadlcgmikh?style=for-the-badge)
+![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/apfbfjghmamodacdkkhoiabadlcgmikh?style=flat-square)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/apfbfjghmamodacdkkhoiabadlcgmikh?style=flat-square)
+![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/apfbfjghmamodacdkkhoiabadlcgmikh?style=flat-square)
+![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/apfbfjghmamodacdkkhoiabadlcgmikh?style=flat-square)
 
-![Mozilla Add-on Version](https://img.shields.io/amo/v/TPscanner?style=for-the-badge)
-![Mozilla Add-on Users](https://img.shields.io/amo/users/TPscanner?style=for-the-badge)
-![Mozilla Add-on Downloads](https://img.shields.io/amo/dw/TPscanner?style=for-the-badge)
-![Mozilla Add-on Rating](https://img.shields.io/amo/rating/TPscanner%40fcalefato.dev?style=for-the-badge)
-![Mozilla Add-on Stars](https://img.shields.io/amo/stars/TPscanner%40fcalefato.dev?style=for-the-badge)
+![Mozilla Add-on Version](https://img.shields.io/amo/v/TPscanner?style=flat-square)
+![Mozilla Add-on Users](https://img.shields.io/amo/users/TPscanner?style=flat-square)
+![Mozilla Add-on Downloads](https://img.shields.io/amo/dw/TPscanner?style=flat-square)
+![Mozilla Add-on Rating](https://img.shields.io/amo/rating/TPscanner%40fcalefato.dev?style=flat-square)
+![Mozilla Add-on Stars](https://img.shields.io/amo/stars/TPscanner%40fcalefato.dev?style=flat-square)
 
-![GitHub manifest version](https://img.shields.io/github/manifest-json/v/bateman/tpscanner-ext?style=for-the-badge&label=MANIFEST)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bateman/tpscanner-ext/release.yml?style=for-the-badge)
-![GitHub Release](https://img.shields.io/github/v/release/bateman/tpscanner-ext?style=for-the-badge)
+![GitHub manifest version](https://img.shields.io/github/manifest-json/v/bateman/tpscanner-ext?style=flat-square&label=manifest)
+![GitHub Release](https://img.shields.io/github/v/release/bateman/tpscanner-ext?style=flat-square&label=GitHub%20release)
+![Chrome Release](https://img.shields.io/github/actions/workflow/status/bateman/tpscanner-ext/chrome-release.yml?style=flat-square&label=Chrome%20release)
+![Edge Release](https://img.shields.io/github/actions/workflow/status/bateman/tpscanner-ext/edge-release.yml?style=flat-square&label=Edge%20release)
+![Firefox Release](https://img.shields.io/github/actions/workflow/status/bateman/tpscanner-ext/firefox-release.yml?style=flat-square&label=Firefox%20release)
 
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bateman/tpscanner-ext?style=for-the-badge)
-![GitHub language count](https://img.shields.io/github/languages/count/bateman/tpscanner-ext?style=for-the-badge)
-![GitHub top language](https://img.shields.io/github/languages/top/bateman/tpscanner-ext?style=for-the-badge)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/bateman/tpscanner-ext?style=for-the-badge)
-![GitHub License](https://img.shields.io/github/license/bateman/tpscanner-ext?style=for-the-badge)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bateman/tpscanner-ext?style=flat-square)
+![GitHub language count](https://img.shields.io/github/languages/count/bateman/tpscanner-ext?style=flat-square)
+![GitHub top language](https://img.shields.io/github/languages/top/bateman/tpscanner-ext?style=flat-square)
+![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/bateman/tpscanner-ext?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/bateman/tpscanner-ext?style=flat-square)
 
 A cross-browser extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
 
