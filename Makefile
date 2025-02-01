@@ -47,9 +47,10 @@ CSS := css
 JS := js
 IMAGES := images
 HTML := html
+LOCALES := _locales
 
 # Files
-SRC := $(CSS) $(JS) $(IMAGES) $(HTML) $(MANIFEST)
+SRC := $(CSS) $(JS) $(IMAGES) $(HTML) $(MANIFEST) $(LOCALES)
 SRC_FILES := $(shell find $(SRC) -type f)
 JS_FILES := $(wildcard $(JS)/*.js)
 
