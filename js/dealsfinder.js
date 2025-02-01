@@ -111,10 +111,16 @@ function findBestCumulativeDeals(individualDeals) {
 function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     // Step 1: Calculate the total cost of buying each item individually from the best store for that item
     let totalIndividualCost = 0;
-    if (bestIndividualDeals && bestIndividualDeals.length !== 0) {
-        for (let itemName in bestIndividualDeals) {
-            let bestDeal = bestIndividualDeals[itemName][0]; // Get the best deal for the item
-            totalIndividualCost += bestDeal.total_price_plus_delivery;
+    if (bestIndividualDeals) {
+        let n = 0;
+        for (var itemName in bestIndividualDeals) {
+            n += bestIndividualDeals[itemName].length;
+        }
+        if (n > 0) {
+            for (let itemName in bestIndividualDeals) {
+                let bestDeal = bestIndividualDeals[itemName][0]; // Get the best deal for the item
+                totalIndividualCost += bestDeal.total_price_plus_delivery;
+            }
         }
     }
 
@@ -128,7 +134,7 @@ function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
 
     // Step 3: Compare the total costs and determine the best overall deal
     let bestOverallDeal = {};
-    if (bestCumulativeCost < totalIndividualCost) {
+    if (totalIndividualCost === 0 || bestCumulativeCost < totalIndividualCost) {
         bestOverallDeal = {
             best_deal_type: 'cumulative',
             best_total_price: bestCumulativeCost
