@@ -133,24 +133,19 @@ function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     // Step 2: Get the best cumulative deal (all items from the same store)
     let bestCumulativeCost = 0;
     let bestCumulativeDeal = {};
-    if (bestCumulativeDeals && bestCumulativeDeals.length !== 0) {
+    if (bestCumulativeDeals && Object.keys(bestCumulativeDeals).length !== 0) {
         bestCumulativeDeal = bestCumulativeDeals[0]; // Get the best cumulative deal
         bestCumulativeCost = Object.values(bestCumulativeDeal)[0].cumulativePricePlusDelivery;
     }
 
     // Step 3: Compare the total costs and determine the best overall deal
-    let bestOverallDeal = {};
-    if (totalIndividualCost === 0 || notAllItemsAvailable || bestCumulativeCost < totalIndividualCost) {
-        bestOverallDeal = {
-            best_deal_type: 'cumulative',
-            best_total_price: parseFloat(bestCumulativeCost.toFixed(2))
-        };
-    } else {
-        bestOverallDeal = {
-            best_deal_type: 'individual',
-            best_total_price: parseFloat(totalIndividualCost.toFixed(2))
-        };
-    }
-    return bestOverallDeal;
+    const chooseCumulative =
+        totalIndividualCost === 0 ||
+        (notAllItemsAvailable && bestCumulativeCost > 0 && bestCumulativeCost < totalIndividualCost);
+
+    return {
+        best_deal_type: chooseCumulative ? 'cumulative' : 'individual',
+        best_total_price: parseFloat((chooseCumulative ? bestCumulativeCost : totalIndividualCost).toFixed(2))
+    };
 }
 
