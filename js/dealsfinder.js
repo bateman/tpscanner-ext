@@ -75,7 +75,7 @@ function findBestCumulativeDeals(individualDeals) {
                     bestDealItems.deliveryPrice = itemDeals[i].delivery_price;
                     bestDealItems.freeDelivery = itemDeals[i].free_delivery;
                     bestDealItems.availability = itemDeals[i].availability;
-                    bestDealItems.cumulativePrice = (bestDealItems.cumulativePrice || 0) + (itemDeals[i].price * itemQuantity); 
+                    bestDealItems.cumulativePrice = (bestDealItems.cumulativePrice || 0) + (itemDeals[i].price * itemQuantity);
                 }
             }
         }
@@ -103,5 +103,42 @@ function findBestCumulativeDeals(individualDeals) {
         return { [key]: sortedBestCumulativeDeals[key] };
     });
     return arrayBestCumulativeDeals;
+}
+
+// Find the best overall deal by comparing the total amount spent by buying the best individual offer
+// for each item (i.e., each item from different stores) to the best cumulative offer (i.e., all items 
+// from the same store).
+function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
+    // Step 1: Calculate the total cost of buying each item individually from the best store for that item
+    let totalIndividualCost = 0;
+    if (bestIndividualDeals && bestIndividualDeals.length !== 0) {
+        for (let itemName in bestIndividualDeals) {
+            let bestDeal = bestIndividualDeals[itemName][0]; // Get the best deal for the item
+            totalIndividualCost += bestDeal.total_price_plus_delivery;
+        }
+    }
+
+    // Step 2: Get the best cumulative deal (all items from the same store)
+    let bestCumulativeCost = 0;
+    let bestCumulativeDeal = {};
+    if (bestCumulativeDeals && bestCumulativeDeals.length !== 0) {
+        bestCumulativeDeal = bestCumulativeDeals[0]; // Get the best cumulative deal
+        bestCumulativeCost = Object.values(bestCumulativeDeal)[0].cumulativePricePlusDelivery;
+    }
+
+    // Step 3: Compare the total costs and determine the best overall deal
+    let bestOverallDeal = {};
+    if (bestCumulativeCost < totalIndividualCost) {
+        bestOverallDeal = {
+            best_deal_type: 'cumulative',
+            best_total_price: bestCumulativeCost
+        };
+    } else {
+        bestOverallDeal = {
+            best_deal_type: 'individual',
+            best_total_price: totalIndividualCost
+        };
+    }
+    return bestOverallDeal;
 }
 
