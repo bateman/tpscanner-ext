@@ -1,5 +1,5 @@
 body {
-    width: 500px;
+    width: 545px;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 13px;
     font-weight: 400;
@@ -97,7 +97,7 @@ img.footer-gh {
 }
 
 #item-image {
-    margin-left: 325px;
+    margin-left: 370px;
     border: #e2e2e2 0.5px solid;
 }
 
@@ -137,7 +137,7 @@ img.footer-gh {
 
 #items th:first-child {
     text-align: left;
-    width: 410px;
+    width: 445px;
 }
 
 #items td:nth-child(n+2) {
