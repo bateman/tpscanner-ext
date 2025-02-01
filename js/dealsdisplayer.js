@@ -30,20 +30,26 @@ function loadBestDeals() {
     // Load the best deals from local storage
     var bII = JSON.parse(localStorage.getItem('bestIndividualDeals')) || {};
     var bCD = JSON.parse(localStorage.getItem('bestCumulativeDeals')) || {};
+    var bOD = JSON.parse(localStorage.getItem('bestOverallDeal')) || {};
 
     // Populate the tables
     if (Object.keys(bII).length > 0 || Object.keys(bCD).length > 0) {
-        populatebBestInividualDealsTable(bII);
-        populateBestCumulativeDealsTable(bCD);
+        populatebBestInividualDealsTable(bII, bOD);
+        populateBestCumulativeDealsTable(bCD, bOD);
     }
 }
 
-function populatebBestInividualDealsTable(bII) {
+function populatebBestInividualDealsTable(bII, bOD) {
     var table = document.getElementById('bii');
+    let previousItemName = '';
     for (var itemName in bII) {
         var itemDeals = bII[itemName];
         for (let i = 0; i < itemDeals.length; i++) {
-            var row = table.insertRow(-1);          
+            var row = table.insertRow(-1);
+            if (previousItemName !== itemName) {
+                // apply background color as defined by css rule (best-deal class)
+                row.className = 'best-deal';
+            }        
             var cellProduct= row.insertCell(0);
             // add item url as link of product name
             var link = document.createElement('a');
@@ -51,6 +57,12 @@ function populatebBestInividualDealsTable(bII) {
             link.textContent = itemName;
             link.target = '_blank';
             cellProduct.appendChild(link);
+            // add best deal badge unicode image
+            if (previousItemName !== itemName && bOD.best_deal_type === 'individual') {
+                var img = document.createTextNode(' \uD83E\uDD47'); 
+                cellProduct.appendChild(img);
+            }
+            previousItemName = itemName;  
             // add quantity cell
             var cellQty = row.insertCell(1);
             cellQty.textContent = itemDeals[i].quantity;
@@ -100,13 +112,17 @@ function populatebBestInividualDealsTable(bII) {
     }
 }
 
-function populateBestCumulativeDealsTable(bCD) {
+function populateBestCumulativeDealsTable(bCD, bOD) {
     var table = document.getElementById('bcd');
     for (let i=0; i < bCD.length; i++) {
         var cumulativeDeal = bCD[i];
         for (let seller in cumulativeDeal) {
             var itemDeal = cumulativeDeal[seller];
-            var row = table.insertRow(-1);          
+            var row = table.insertRow(-1);      
+            if (i == 0) {
+                // apply background color as defined by css rule (best-deal class)
+                row.className = 'best-deal';
+            }    
             // add seller cell
             var cellSeller = row.insertCell(0);
             var linkSeller = document.createElement('a');
@@ -121,6 +137,11 @@ function populateBestCumulativeDealsTable(bCD) {
             linkSellerReviews.target = '_blank';
             cellSeller.appendChild(linkSellerReviews);
             cellSeller.appendChild(document.createTextNode(')'));
+            // add best deal badge unicode image
+            if (i == 0 && bOD.best_deal_type === 'cumulative') {
+                var img = document.createTextNode(' \uD83E\uDD47');
+                cellSeller.appendChild(img);
+            }
             // add rating cell
             var cellRating = row.insertCell(1);
             var ratingText = itemDeal.sellerRating ? itemDeal.sellerRating.toFixed(1) + ' / 5 \u2605' : 'N/A';

@@ -129,6 +129,10 @@ table td {
     border: none;
 }
 
+table .best-deal {
+    background-color: #ffffcc;
+}
+
 button {
     border-radius: 12px;
     background-color: #dbedf6;
