@@ -24,8 +24,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update best deals message
     var bII = JSON.parse(localStorage.getItem('bestIndividualDeals')) || {};
     var bCD = JSON.parse(localStorage.getItem('bestCumulativeDeals')) || {};
+    var bOD = JSON.parse(localStorage.getItem('bestOverallDeal')) || {};
     if (Object.keys(bII).length > 0 || Object.keys(bCD).length > 0) {
-        updateBestDealsMessage(bII, bCD);
+        updateBestDealsMessage(bII, bCD, bOD);
     }
 
     browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -54,8 +55,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Clear the best deals local storage
                     localStorage.setItem('bestIndividualDeals', JSON.stringify({}));
                     localStorage.setItem('bestCumulativeDeals', JSON.stringify({}));
+                    localStorage.setItem('bestOverallDeal', JSON.stringify({}));
                     // Clear the box-deals message
-                    updateBestDealsMessage(null, null);
+                    updateBestDealsMessage(null, null, null);
                 }).catch(error => {
                     console.error('An error occurred adding an item to the basket: ', error);
                 });                
@@ -73,8 +75,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // Clear the best deals local storage
             localStorage.setItem('bestIndividualDeals', JSON.stringify({}));
             localStorage.setItem('bestCumulativeDeals', JSON.stringify({}));
+            localStorage.setItem('bestOverallDeal', JSON.stringify({}));
             // Clear the box-deals message
-            updateBestDealsMessage(null, null);
+            updateBestDealsMessage(null, null, null);
         });
     });
 
@@ -141,11 +144,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
                 itemsTable.deleteRow(row.rowIndex - 1);
                 // Clear the box-deals message when an item is removed from the list
-                updateBestDealsMessage(null, null);
+                updateBestDealsMessage(null, null, null);
                 // Update storage with no deals
                 localStorage.setItem('bestIndividualDeals', JSON.stringify({}));
                 localStorage.setItem('bestCumulativeDeals', JSON.stringify({}));
-
+                localStorage.setItem('bestOverallDeal', JSON.stringify({}));
             });
             cellBtn.appendChild(removeButton);
         }
@@ -156,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (len > 0) {
             let bestIndividualDeals = { };
             let bestCumulativeDeals = { };
+            let bestOverallDeal = { };
             // iterate over the selected basket items in the local storage
             for (var itemName in selectedItems) {
                 console.log('Finding best deals for ' + itemName);
@@ -172,23 +176,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Finding best cumulative deals for ' + len + ' item(s)');
                 bestCumulativeDeals = findBestCumulativeDeals(selectedItems);
                 console.log('Found ' + bestCumulativeDeals.length + ' best cumulative deal(s) for ' + len + ' item(s)');
+                console.log('Best cumulative deals: ', bestCumulativeDeals);
+                console.log('Finding the best overall deal for ' + len + ' item(s');
+                bestOverallDeal = findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals);
+                console.log('Found the best overall deal for ' + len + ' item(s)');
+                console.log('Best overall deal: ', bestOverallDeal);
             }
-            console.log('Best cumlative deals: ', bestCumulativeDeals);
 
             // Save the best deals to local storage
             bII = bestIndividualDeals;
             bCD = bestCumulativeDeals;
+            bOD = bestOverallDeal;
             localStorage.setItem('bestIndividualDeals', JSON.stringify(bII));
             localStorage.setItem('bestCumulativeDeals', JSON.stringify(bCD));
+            localStorage.setItem('bestOverallDeal', JSON.stringify(bOD));
             // Update the best deals message
-            updateBestDealsMessage(bII, bCD);
+            updateBestDealsMessage(bII, bCD, bOD);
         }
     });
 });
 
 // ---------------- Functions ----------------
 
-function updateBestDealsMessage(individualDeals, cumulativeDeals) {
+function updateBestDealsMessage(individualDeals, cumulativeDeals, bestOverallDeal) {
     const boxDeals = document.getElementById('box-deals');
     let n = 0;
     if(individualDeals) {
@@ -200,8 +210,15 @@ function updateBestDealsMessage(individualDeals, cumulativeDeals) {
     }
     let m = cumulativeDeals ? cumulativeDeals.length : -1;
     m = m ? m : 0;
+    let t = 0
+    if(bestOverallDeal) {
+        t = bestOverallDeal.best_total_price
+    }
     if (n !== -1 && m !== -1) {
-        boxDeals.textContent = 'Found ' + n + ' individual deal(s), ' + m + ' cumulative deal(s)';
+        let textContext = 'Found ' + n + ' individual deal(s), ' + m + ' cumulative deal(s). ';
+        textContext += 'Best total price: ' + t + '\u20AC';
+        boxDeals.textContent = textContext;
+
         boxDeals.classList.add('blink');
         setTimeout(() => boxDeals.classList.remove('blink'), 1000);
     } else {
