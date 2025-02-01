@@ -276,14 +276,15 @@ tag/push: | dep/git  ## Push the tag to origin - triggers the release action
 
 .PHONY: tag/delete 
 tag/delete: | dep/git  ## Delete the tag for the current version
-	$(eval tag_exists=$(shell $(GIT) rev-parse $(APP_VERSION) >/dev/null 2>&1 && echo 1 || echo 0))
-	@if [ "$(tag_exists)" = "1" ]; then \
-		@echo -e "$(CYAN)\nDeleting tag $(APP_VERSION)...$(RESET)"; \
-		$(GIT) tag -d $(APP_VERSION) && $(GIT) push origin :refs/tags/$(APP_VERSION); \
-		echo -e "$(GREEN)Done.$(RESET)" ; \
-	else \
-		@echo -e "$(ORANGE)Current $(APP_VERSION) is not tagged.$(RESET)"; \
-	fi
+    $(eval TAG := $(shell echo v$(APP_VERSION)))
+    $(eval tag_exists=$(shell $(GIT) rev-parse $(TAG) >/dev/null 2>&1 && echo 1 || echo 0))
+    @if [ "$(tag_exists)" = "1" ]; then \
+        @echo -e "$(CYAN)\nDeleting tag $(TAG)...$(RESET)"; \
+        $(GIT) tag -d $(TAG) && $(GIT) push origin :refs/tags/$(TAG); \
+        echo -e "$(GREEN)Done.$(RESET)" ; \
+    else \
+        @echo -e "$(ORANGE)Current version $(APP_VERSION) is not tagged.$(RESET)"; \
+    fi
 
 #-- Run
 
