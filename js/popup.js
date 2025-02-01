@@ -212,7 +212,7 @@ function updateBestDealsMessage(individualDeals, cumulativeDeals, bestOverallDea
     let m = cumulativeDeals ? cumulativeDeals.length : -1;
     m = m ? m : 0;
     let t = 0
-    if(bestOverallDeal) {
+    if (bestOverallDeal && bestOverallDeal.best_total_price) {
         t = bestOverallDeal.best_total_price
     }
     if (n !== -1 && m !== -1) {
