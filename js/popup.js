@@ -216,7 +216,7 @@ function updateBestDealsMessage(individualDeals, cumulativeDeals, bestOverallDea
     }
     if (n !== -1 && m !== -1) {
         let textContext = 'Found ' + n + ' individual deal(s), ' + m + ' cumulative deal(s). ';
-        textContext += 'Best total price: ' + t + '\u20AC';
+        textContext += 'Best total price: ' + t + ' \u20AC';
         boxDeals.textContent = textContext;
 
         boxDeals.classList.add('blink');
