@@ -10,21 +10,54 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-
-    document.getElementById("export").addEventListener('click', function() {
+    document.getElementById("export").addEventListener('click', function () {
         const timestamp = new Date().toISOString().replace(/:/g, '-').replace('T', '_').split('.')[0];
-        var wb = XLSX.utils.table_to_book(document.getElementById("bii"), { sheet: "Best individual deals" });
-        var ws = XLSX.utils.table_to_sheet(document.getElementById("bcd"));
-        XLSX.utils.book_append_sheet(wb, ws, "Best cumulative deals");
-        XLSX.writeFile(wb, "TPscanner_best-deals_" + timestamp + ".xlsx");
-    });
 
+        // First worksheet
+        var wb = XLSX.utils.table_to_book(document.getElementById("bii"), {
+            sheet: "Best individual deals",
+            display: true,
+            raw: true
+        });
+        var ws1 = wb.Sheets["Best individual deals"];
+        ws1['!cols'] = calculateColumnWidths(ws1);
+
+        // Second worksheet
+        var ws2 = XLSX.utils.table_to_sheet(document.getElementById("bcd"), {
+            display: true,
+            raw: true
+        });
+        XLSX.utils.book_append_sheet(wb, ws2, "Best cumulative deals");
+        ws2['!cols'] = calculateColumnWidths(ws2);
+
+        // Write file
+        XLSX.writeFile(wb, "TPscanner_best-deals_" + timestamp + ".xlsx", {
+            bookType: 'xlsx',
+        });
+    });
 
     // Select the first tab by default
     document.getElementById('tab-bii').click();
 
     loadBestDeals();
 });
+
+function calculateColumnWidths(ws) {
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const cols = [];
+    for (let C = range.s.c; C <= range.e.c; C++) {
+        let maxWidth = 0;
+        for (let R = range.s.r; R <= range.e.r; R++) {
+            const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+            if (cell && cell.v) {
+                const width = (cell.v.toString().length + 2) * 1;
+                maxWidth = Math.max(maxWidth, width);
+            }
+        }
+        cols.push({ wch: maxWidth });
+    }
+    return cols;
+}
 
 function loadBestDeals() {
     // Load the best deals from local storage
