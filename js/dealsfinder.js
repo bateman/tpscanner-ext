@@ -109,6 +109,7 @@ function findBestCumulativeDeals(individualDeals) {
 // for each item (i.e., each item from different stores) to the best cumulative offer (i.e., all items 
 // from the same store).
 function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
+    let notAllItemsAvailable = false;
     // Step 1: Calculate the total cost of buying each item individually from the best store for that item
     let totalIndividualCost = 0;
     if (bestIndividualDeals) {
@@ -119,7 +120,12 @@ function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
         if (n > 0) {
             for (let itemName in bestIndividualDeals) {
                 let bestDeal = bestIndividualDeals[itemName][0]; // Get the best deal for the item
-                totalIndividualCost += bestDeal.total_price_plus_delivery;
+                if (bestDeal)
+                    totalIndividualCost += bestDeal.total_price_plus_delivery;
+                else {
+                    console.log('No best deal found for ' + itemName);
+                    notAllItemsAvailable = true;
+                }
             }
         }
     }
@@ -134,15 +140,15 @@ function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
 
     // Step 3: Compare the total costs and determine the best overall deal
     let bestOverallDeal = {};
-    if (totalIndividualCost === 0 || bestCumulativeCost < totalIndividualCost) {
+    if (totalIndividualCost === 0 || notAllItemsAvailable || bestCumulativeCost < totalIndividualCost) {
         bestOverallDeal = {
             best_deal_type: 'cumulative',
-            best_total_price: bestCumulativeCost
+            best_total_price: parseFloat(bestCumulativeCost.toFixed(2))
         };
     } else {
         bestOverallDeal = {
             best_deal_type: 'individual',
-            best_total_price: totalIndividualCost
+            best_total_price: parseFloat(totalIndividualCost.toFixed(2))
         };
     }
     return bestOverallDeal;

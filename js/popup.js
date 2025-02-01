@@ -168,9 +168,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Removed ' + count + ' unavailable item(s) for ' + itemName);
                 let bestDeals = findBestIndividualDeals(itemName, selectedItems[itemName].deals, selectedItems[itemName].quantity);
                 console.log('Found ' + bestDeals.length + ' best individual deal(s) for ' + itemName + ' (q.ty: ' + selectedItems[itemName].quantity + ')');
-                console.log('Best individual deals: ', bestDeals);
+                console.log('Best individual deals for ' + itemName + ': ', bestDeals);
                 bestIndividualDeals[itemName] = bestDeals;
             }
+            console.log('Best individual deals for all items: ', bestIndividualDeals);
             len = Object.keys(selectedItems).length;
             if (len > 1) {
                 console.log('Finding best cumulative deals for ' + len + ' item(s)');
