@@ -39,49 +39,49 @@
     "message": "Best total price: "
   },
   "dealsTabIndividual": {
-    "message": "Offerte individuali"
+    "message": "Individual deals"
   },
   "dealsTabCumulative": {
-    "message": "Offerte cumulative"
+    "message": "Cumulative deals"
   },
   "dealsTableProduct": {
-    "message": "Prodotto"
+    "message": "Item"
   },
   "dealsTableQuantity": {
-    "message": "Quantità"
+    "message": "Q.ty"
   },
   "dealsTablePrice": {
-    "message": "Prezzo"
+    "message": "Price"
   },
   "dealsTableTotalPrice": {
-    "message": "Prezzo tot."
+    "message": "Total price"
   },
   "dealsTableCumulativePrice": {
-    "message": "Prezzo tot. cumulativo"
+    "message": "Cumulative price"
   },
   "dealsTableDelivery": {
-    "message": "Consegna"
+    "message": "Delivery"
   },
   "dealsTableFreeDelivery": {
-    "message": "Consegna gratuita da"
+    "message": "Free delivery at"
   },
   "dealsTableTotalPriceDelivery": {
-    "message": "Prezzo tot. + consegna"
+    "message": "Total price + delivery"
   },
   "dealsTableCumalativePriceDelivery": {
-    "message": "Prezzo tot. cumulativo + consegna"
+    "message": "Cumulative price + delivery"
   },
   "dealsTableAvailable": {
-    "message": "Disponibile"
+    "message": "Availabile"
   },
   "dealsTableSeller": {
-    "message": "Venditore"
+    "message": "Seller"
   },
   "dealsTableRating": {
-    "message": "Giudizi"
+    "message": "Rating"
   },
   "dealsDisplayerYes": {
-    "message": "Sì "
+    "message": "Yes "
   },
   "dealsDisplayerNo": {
     "message": "No "
