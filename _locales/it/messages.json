@@ -1,0 +1,95 @@
+{
+  "extensionName": {
+    "message": "TPscanner"
+  },
+  "extensionDescription": {
+    "message": "Un'estensione che ti aiuta a trovare le migliori offerte su trovaprezzi.it."
+  },
+  "popupItemImage": {
+    "message": "Immagine articolo"
+  },
+  "popupBrowsingMessage": {
+    "message": "Stai visualizzando:"
+  },
+  "popupAddButton": {
+    "message": "Aggiungi"
+  },
+  "popupClearButton": {
+    "message": "Pulisci"
+  },
+  "popupFindButton": {
+    "message": "Trova offerte"
+  },
+  "popupBasket": {
+    "message": "Il tuo carrello:"
+  },
+  "popupBasketItem": {
+    "message": "Prodotto"
+  },
+  "popupBasketQuantity": {
+    "message": "Quantità"
+  },
+  "popupBestDealsMessageFound": {
+    "message": "Trovate "
+  },
+  "popupBestDealsMessageIndividuals": {
+    "message": " offerte individuali, "
+  },
+  "popupBestDealsMessageCumulative": {
+    "message": " offerte cumulative. "
+  },
+  "popupBestDealsMessagePrice": {
+    "message": "Miglior prezzo tot.: "
+  },
+  "dealsTabIndividual": {
+    "message": "Offerte individuali"
+  },
+  "dealsTabCumulative": {
+    "message": "Offerte cumulative"
+  },
+  "dealsTableProduct": {
+    "message": "Prodotto"
+  },
+  "dealsTableQuantity": {
+    "message": "Quantità"
+  },
+  "dealsTablePrice": {
+    "message": "Prezzo"
+  },
+  "dealsTableTotalPrice": {
+    "message": "Prezzo tot."
+  },
+  "dealsTableCumulativePrice": {
+    "message": "Prezzo tot. cumulativo"
+  },
+  "dealsTableDelivery": {
+    "message": "Consegna"
+  },
+  "dealsTableFreeDelivery": {
+    "message": "Consegna gratuita da"
+  },
+  "dealsTableTotalPriceDelivery": {
+    "message": "Prezzo tot. + consegna"
+  },
+  "dealsTableCumalativePriceDelivery": {
+    "message": "Prezzo tot. cumulativo + consegna"
+  },
+  "dealsTableAvailable": {
+    "message": "Disponibile"
+  },
+  "dealsTableSeller": {
+    "message": "Venditore"
+  },
+  "dealsTableRating": {
+    "message": "Giudizi"
+  },
+  "dealsDisplayerYes": {
+    "message": "Sì "
+  },
+  "dealsDisplayerNo": {
+    "message": "No "
+  },
+  "privacyDescription": {
+    "message": "Quando aggiungi articoli al tuo carrello virtuale, l'estensione analizzerà il contenuto HTML della scheda attiva per salvare le offerte."
+  }
+}

@@ -82,14 +82,14 @@ a.no-decor:hover {
     transition: all 0.3s ease;
     border-top-left-radius: 20%;
     border-top-right-radius: 20%;
-    width: 130px;
+    width: 140px;
 }
 
 .tab.selected {
     background-color: #ff4438;
     padding: 10px 20px;
     font-weight: 700;
-    width: 130px;
+    width: 140px;
     color: white;
 }
 

@@ -1,0 +1,92 @@
+{
+  "extensionName": {
+    "message": "TPscanner"
+  },
+  "extensionDescription": {
+    "message": "An extension that helps you to find the best deals on trovaprezzi.it."
+  },
+  "popupItemImage": {
+    "message": "Item image"
+  },
+  "popupBrowsingMessage": {
+    "message": "You're browsing:"
+  },
+  "popupBasketItem": {
+    "message": "Item"
+  },
+  "popupBasketQuantity": {
+    "message": "Q.ty"
+  },
+  "popupAddButton": {
+    "message": "Add"
+  },
+  "popupClearButton": {
+    "message": "Clear"
+  },
+  "popupFindButton": {
+    "message": "Find deals"
+  },
+  "popupBestDealsMessageFound": {
+    "message": "Found "
+  },
+  "popupBestDealsMessageIndividuals": {
+    "message": " individual deal(s), "
+  },
+  "popupBestDealsMessageCumulative": {
+    "message": " cumulative deal(s). "
+  },
+  "popupBestDealsMessagePrice": {
+    "message": "Best total price: "
+  },
+  "dealsTabIndividual": {
+    "message": "Offerte individuali"
+  },
+  "dealsTabCumulative": {
+    "message": "Offerte cumulative"
+  },
+  "dealsTableProduct": {
+    "message": "Prodotto"
+  },
+  "dealsTableQuantity": {
+    "message": "Quantità"
+  },
+  "dealsTablePrice": {
+    "message": "Prezzo"
+  },
+  "dealsTableTotalPrice": {
+    "message": "Prezzo tot."
+  },
+  "dealsTableCumulativePrice": {
+    "message": "Prezzo tot. cumulativo"
+  },
+  "dealsTableDelivery": {
+    "message": "Consegna"
+  },
+  "dealsTableFreeDelivery": {
+    "message": "Consegna gratuita da"
+  },
+  "dealsTableTotalPriceDelivery": {
+    "message": "Prezzo tot. + consegna"
+  },
+  "dealsTableCumalativePriceDelivery": {
+    "message": "Prezzo tot. cumulativo + consegna"
+  },
+  "dealsTableAvailable": {
+    "message": "Disponibile"
+  },
+  "dealsTableSeller": {
+    "message": "Venditore"
+  },
+  "dealsTableRating": {
+    "message": "Giudizi"
+  },
+  "dealsDisplayerYes": {
+    "message": "Sì "
+  },
+  "dealsDisplayerNo": {
+    "message": "No "
+  },
+  "privacyDescription": {
+    "message": "When you add items to your virtual basket, the extension will scrape the html content of the active tab to save the deals."
+  }
+}

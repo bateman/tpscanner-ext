@@ -216,8 +216,10 @@ function updateBestDealsMessage(individualDeals, cumulativeDeals, bestOverallDea
         t = bestOverallDeal.best_total_price
     }
     if (n !== -1 && m !== -1) {
-        let textContext = 'Found ' + n + ' individual deal(s), ' + m + ' cumulative deal(s). ';
-        textContext += 'Best total price: ' + t + ' \u20AC';
+        let textContext = browser.i18n.getMessage("popupBestDealsMessageFound") + n;
+        textContext += browser.i18n.getMessage("popupBestDealsMessageIndividuals") + m; 
+        textContext += browser.i18n.getMessage("popupBestDealsMessageCumulative");
+        textContext += browser.i18n.getMessage("popupBestDealsMessagePrice") + t + ' \u20AC';
         boxDeals.textContent = textContext;
 
         boxDeals.classList.add('blink');

@@ -1,3 +1,4 @@
+var browser = window.msBrowser || window.browser || window.chrome;
 console.log('dealsdisplayer.js loaded');
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -117,7 +118,7 @@ function populatebBestInividualDealsTable(bII, bOD) {
             cellTotalPricePlusDelivery.textContent = itemDeals[i].total_price_plus_delivery.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add availability cell
             var cellAvailability = row.insertCell(7);
-            let text = document.createTextNode(itemDeals[i].availability ? 'Yes ' : 'No ');
+            let text = document.createTextNode(itemDeals[i].availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
             symbol.innerHTML = itemDeals[i].availability ? '&#10003;' : '&#10007;';
             cellAvailability.innerHTML = '';
@@ -194,7 +195,7 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
             cellCumulativePricePlusDelivery.textContent = itemDeal.cumulativePricePlusDelivery.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add availability cell
             var cellAvailability = row.insertCell(6);
-            let text = document.createTextNode(itemDeal.availability ? 'Yes ' : 'No ');
+            let text = document.createTextNode(itemDeal.availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
             symbol.innerHTML = itemDeal.availability ? '&#10003;' : '&#10007;';
             cellAvailability.innerHTML = '';

@@ -8,27 +8,28 @@
         <script src="../js/popup.js"></script>
         <script src="../js/scraping.js"></script>
         <script src="../js/dealsfinder.js"></script>
+        <script src="../js/i18n.js"></script>
         <div id="header">
             <a class="no-decor" href="https://www.trovaprezzi.it" target="_blank">
                 <img id="logo" src="../images/icon.jpeg" alt="Logo">
-                <h1>TPscanner</h1>
+                <h1 data-i18n="extensionName">TPscanner</h1>
             </a>
             <img id="item-image" src="../images/item.png" alt="Item image">
         </div>
         
         <div id="title-container">
-            <p>You're browsing:</p>
+            <p data-i18n="popupBrowsingMessage">You're browsing:</p>
             <p id="title"></p>
             <input type="number" id="quantity" min="1" value="1" title="Enter the desired quantity">
-            <button id="add" title="Add the item to your basket">Add</button>
+            <button id="add" title="Add the item to your basket" data-i18n="popupAddButton">Add</button>
         </div>
         <div class="box">
-            <p class="title">Your basket:</p>
+            <p class="title" data-i18n="popupBasket">Your basket:</p>
             <table id="items">
                 <thead>
                     <tr>
-                        <th>Item</th>
-                        <th colspan="2">Q.ty</th>
+                        <th data-i18n="popupBasketItem">Item</th>
+                        <th colspan="2" data-i18n="popupBasketQuantity">Q.ty</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,7 +37,7 @@
             </table>
             <div class="box-buttons">
                 <a class="box-deals" id="box-deals" href="deals.html" target="_blank"></a>
-                <button id="clear" title="Empty your basket">Clear all</button>
+                <button id="clear" title="Empty your basket" data-i18n="popupClearButton">Clear all</button>
             </div>
         </div>
         
@@ -48,7 +49,7 @@
                     </a>
             </div>
             <div class="footer-buttons">
-                <button id="find-deals" title="Click to find the best deals">Find deals</button>
+                <button id="find-deals" title="Click to find the best deals" data-i18n="popupFindButton">Find deals</button>
             </div>
         </div>
     </div>

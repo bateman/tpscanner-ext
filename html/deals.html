@@ -6,12 +6,13 @@
 <body>
     <script src="../js/dealsdisplayer.js"></script>
     <script src="../js/xlsx-0.20.3.full.min.js"></script>
+    <script src="../js/i18n.js"></script>
     <div class="container">
         <div id="header">
             <a class="no-decor" target="_blank" href="https://www.trovaprezzi.it"><img id="logo" src="../images/icon.jpeg" alt="Logo"><h1>TPscanner</h1></a>
             <div class="tabs">
-                <div class="tab" id="tab-bii">Individual deals</div>
-                <div class="tab" id="tab-bcd">Cumulative deals</div>
+                <div class="tab" id="tab-bii" data-i18n="dealsTabIndividual">Individual deals</div>
+                <div class="tab" id="tab-bcd" data-i18n="dealsTabCumulative">Cumulative deals</div>
             </div>
         </div>
         
@@ -19,16 +20,16 @@
             <table id="bii">
                 <!-- Headers for the first table -->
                 <tr>
-                    <th class="product">Product</th>
-                    <th>Q.ty</th>
-                    <th>Price</th>
-                    <th>Total price</th>
-                    <th>Delivery</th>
-                    <th>Free delivery from</th>
-                    <th>Total price + delivery</th>
-                    <th>Availabile</th>
-                    <th class="seller">Seller</th>
-                    <th>Rating</th>
+                    <th class="product" data-i18n="dealsTableProduct">Product</th>
+                    <th data-i18n="dealsTableQuantity">Q.ty</th>
+                    <th data-i18n="dealsTablePrice">Price</th>
+                    <th data-i18n="dealsTableTotalPrice">Total price</th>
+                    <th data-i18n="dealsTableDelivery">Delivery</th>
+                    <th data-i18n="dealsTableFreeDelivery">Free delivery from</th>
+                    <th data-i18n="dealsTableTotalPriceDelivery">Total price + delivery</th>
+                    <th data-i18n="dealsTableAvailable">Availabile</th>
+                    <th class="seller" data-i18n="dealsTableSeller">Seller</th>
+                    <th data-i18n="dealsTableRating">Rating</th>
                 </tr>
                 <!-- Rows for the first table -->
             </table>
@@ -38,19 +39,19 @@
             <table id="bcd">
                 <!-- Headers for the second table -->
                 <tr>
-                    <th class="seller">Seller</th>
-                    <th>Rating</th>
-                    <th>Cumulative price</th>
-                    <th>Delivery</th>
-                    <th>Free delivery from</th>
-                    <th>Cumulative price + delivery</th>
-                    <th>Availability</th>
+                    <th class="seller" data-i18n="dealsTableSeller">Seller</th>
+                    <th data-i18n="dealsTableRating">Rating</th>
+                    <th data-i18n="dealsTableCumulativePrice">Cumulative price</th>
+                    <th data-i18n="dealsTableDelivery">Delivery</th>
+                    <th data-i18n="dealsTableFreeDelivery">Free delivery from</th>
+                    <th data-i18n="dealsTableCumalativePriceDelivery">Cumulative price + delivery</th>
+                    <th data-i18n="dealsTableAvailable">Availabile</th>
                 </tr>
                 <!-- Rows for the second table -->
             </table>
         </div>
         <div class="box-buttons">
-            <button id="export"><b>Export as XLSX</b></button>
+            <button id="export" data-i18n="dealsButtonExport"><b>Export as XLSX</b></button>
         </div>
     </div>
 </body>
