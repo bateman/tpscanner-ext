@@ -179,10 +179,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('Found ' + bestCumulativeDeals.length + ' best cumulative deal(s) for ' + len + ' item(s)');
                 console.log('Best cumulative deals: ', bestCumulativeDeals);
                 console.log('Finding the best overall deal for ' + len + ' item(s');
-                bestOverallDeal = findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals);
-                console.log('Found the best overall deal for ' + len + ' item(s)');
-                console.log('Best overall deal: ', bestOverallDeal);
             }
+            bestOverallDeal = findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals);
+            console.log('Found the best overall deal for ' + len + ' item(s)');
+            console.log('Best overall deal: ', bestOverallDeal);
 
             // Save the best deals to local storage
             bII = bestIndividualDeals;
