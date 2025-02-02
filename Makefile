@@ -261,7 +261,7 @@ tag/major: | tag staging  ## Bump major semantic version in manifest files (e.g.
 
 .PHONY: tag/push
 tag/push: | dep/git  ## Push the tag to origin - triggers the release action
-	@$(eval TAG := $(shell echo v$(APP_VERSION)))
+	@$(eval TAG := $(shell echo $(APP_VERSION)))
 	@$(eval REMOTE_TAGS := $(shell $(GIT) ls-remote --tags origin | $(AWK) '{print $$2}'))
 	@if echo $(REMOTE_TAGS) | grep -q $(TAG); then \
 		echo -e "$(ORANGE)\nNothing to push: tag $(TAG) already exists on origin.$(RESET)"; \
@@ -276,7 +276,7 @@ tag/push: | dep/git  ## Push the tag to origin - triggers the release action
 
 .PHONY: tag/delete 
 tag/delete: | dep/git  ## Delete the tag for the current version
-    $(eval TAG := $(shell echo v$(APP_VERSION)))
+    $(eval TAG := $(shell echo $(APP_VERSION)))
     $(eval tag_exists=$(shell $(GIT) rev-parse $(TAG) >/dev/null 2>&1 && echo 1 || echo 0))
     @if [ "$(tag_exists)" = "1" ]; then \
         @echo -e "$(CYAN)\nDeleting tag $(TAG)...$(RESET)"; \
