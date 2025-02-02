@@ -87,6 +87,6 @@
     "message": "No "
   },
   "privacyDescription": {
-    "message": "When you add items to your virtual basket, the extension will scrape the html content of the active tab to save the deals."
+    "message": "When you add items to your virtual basket, the extension will scrape the html content of the active tab to save the deals. For more information, check the pricacy statement: https://raw.githubusercontent.com/bateman/tpscanner-ext/refs/heads/main/PRIVACY.md"
   }
 }

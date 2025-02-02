@@ -90,6 +90,6 @@
     "message": "No "
   },
   "privacyDescription": {
-    "message": "Quando aggiungi articoli al tuo carrello virtuale, l'estensione analizzerà il contenuto HTML della scheda attiva per salvare le offerte."
+    "message": "Quando aggiungi articoli al tuo carrello virtuale, l'estensione analizzerà il contenuto HTML della scheda attiva per salvare le offerte. Per maggiori informazioni, consulta: https://raw.githubusercontent.com/bateman/tpscanner-ext/refs/heads/main/PRIVACY.md"
   }
 }
