@@ -1,3 +1,6 @@
+/*global XLSX*/
+/*eslint-env browser*/
+
 var browser = window.msBrowser || window.browser || window.chrome;
 console.log('dealsdisplayer.js loaded');
 
