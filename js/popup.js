@@ -1,3 +1,4 @@
+import { extractPricesPlusShipping } from './scraping.js';
 var browser = window.msBrowser || window.browser || window.chrome;
 console.log('popup.js loaded');
 
