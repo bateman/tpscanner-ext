@@ -21,7 +21,8 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bateman/tpscanner-ext?style=flat-square)
 ![GitHub language count](https://img.shields.io/github/languages/count/bateman/tpscanner-ext?style=flat-square)
 ![GitHub top language](https://img.shields.io/github/languages/top/bateman/tpscanner-ext?style=flat-square)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/bateman/tpscanner-ext?style=flat-square)
+![Codacy grade](https://img.shields.io/codefactor/grade/github/bateman/tpscanner-ext?style=flat-square&label=CodeFactor%20grade)
+![Codacy grade](https://img.shields.io/codacy/grade/145eb10805cb455eb49da3000b0ffe02?style=flat-square&label=Codacy%20grade)
 ![GitHub License](https://img.shields.io/github/license/bateman/tpscanner-ext?style=flat-square)
 
 A cross-browser extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
