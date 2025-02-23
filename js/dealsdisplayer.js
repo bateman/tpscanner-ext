@@ -123,8 +123,8 @@ function populatebBestInividualDealsTable(bII, bOD) {
             var cellAvailability = row.insertCell(7);
             let text = document.createTextNode(itemDeals[i].availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
-            symbol.innerHTML = itemDeals[i].availability ? '&#10003;' : '&#10007;';
-            cellAvailability.innerHTML = '';
+            symbol.textContent = itemDeals[i].availability ? '\u2713' : '\u2717';
+            cellAvailability.textContent = '';
             cellAvailability.appendChild(text);
             cellAvailability.appendChild(symbol);
             // add seller cell
@@ -200,8 +200,8 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
             var cellAvailability = row.insertCell(6);
             let text = document.createTextNode(itemDeal.availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
-            symbol.innerHTML = itemDeal.availability ? '&#10003;' : '&#10007;';
-            cellAvailability.innerHTML = '';
+            symbol.textContent = itemDeal.availability ? '\u2713' : '\u2717';
+            cellAvailability.textContent = '';
             cellAvailability.appendChild(text);
             cellAvailability.appendChild(symbol);
         }
