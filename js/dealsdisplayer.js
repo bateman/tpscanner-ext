@@ -153,7 +153,7 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
         for (let seller in cumulativeDeal) {
             var itemDeal = cumulativeDeal[seller];
             var row = table.insertRow(-1);      
-            if (i == 0) {
+            if (i === 0) {
                 // apply background color as defined by css rule (best-deal class)
                 row.className = 'best-deal';
             }    
@@ -172,7 +172,7 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
             cellSeller.appendChild(linkSellerReviews);
             cellSeller.appendChild(document.createTextNode(')'));
             // add best deal badge unicode image
-            if (i == 0 && bOD.best_deal_type === 'cumulative') {
+            if (i === 0 && bOD.best_deal_type === 'cumulative') {
                 var img = document.createTextNode(' \uD83E\uDD47');
                 cellSeller.appendChild(img);
             }
