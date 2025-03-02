@@ -82,7 +82,7 @@ function populatebBestInividualDealsTable(bII, bOD) {
 
     Object.keys(bII).forEach(itemName => {
         // Verify property ownership
-        if (!bII.hasOwnProperty(itemName)) {
+        if (!Object.prototype.hasOwnProperty.call(bII, itemName)) {
             return;
         }
         
