@@ -65,22 +65,30 @@ export function findBestCumulativeDeals(individualDeals) {
     // for each common seller, find the cumulative price of all items sold by that seller
     // and sort the items by price
     let bestCumulativeDeals = {};
-    for (let seller of commonSellers) {
+        for (let seller of commonSellers) {
         let bestDealItems = {};
-        for (let itemName in individualDeals) {
-            let itemDeals = individualDeals[itemName].deals;
-            let itemQuantity = individualDeals[itemName].quantity;
-            for (let i = 0; i < itemDeals.length; i++) {
-                if (itemDeals[i].seller === seller) {
-                    bestDealItems.name = itemName;
-                    bestDealItems.sellerLink = itemDeals[i].seller_link;
-                    bestDealItems.sellerReviews = itemDeals[i].seller_reviews;
-                    bestDealItems.sellerReviewsLink = itemDeals[i].seller_reviews_link;
-                    bestDealItems.sellerRating = itemDeals[i].seller_rating;
-                    bestDealItems.deliveryPrice = itemDeals[i].delivery_price;
-                    bestDealItems.freeDelivery = itemDeals[i].free_delivery;
-                    bestDealItems.availability = itemDeals[i].availability;
-                    bestDealItems.cumulativePrice = (bestDealItems.cumulativePrice || 0) + (itemDeals[i].price * itemQuantity);
+        // Usa Object.keys() per iterare sulle chiavi in modo sicuro
+        const itemNames = Object.keys(individualDeals);
+        for (let i = 0; i < itemNames.length; i++) {
+            const itemName = itemNames[i];
+            // Check if the object and its properties exists before accessing them
+            const item = individualDeals[itemName];
+            if (item && typeof item === 'object' && item.deals && Array.isArray(item.deals) && 'quantity' in item) {
+                const itemDeals = item.deals;
+                const itemQuantity = item.quantity; 
+                for (let j = 0; j < itemDeals.length; j++) {
+                    const deal = itemDeals[j];
+                    if (deal && deal.seller === seller) {
+                        bestDealItems.name = itemName;
+                        bestDealItems.sellerLink = deal.seller_link;
+                        bestDealItems.sellerReviews = deal.seller_reviews;
+                        bestDealItems.sellerReviewsLink = deal.seller_reviews_link;
+                        bestDealItems.sellerRating = deal.seller_rating;
+                        bestDealItems.deliveryPrice = deal.delivery_price;
+                        bestDealItems.freeDelivery = deal.free_delivery;
+                        bestDealItems.availability = deal.availability;
+                        bestDealItems.cumulativePrice = (bestDealItems.cumulativePrice || 0) + (deal.price * itemQuantity);
+                    }
                 }
             }
         }
