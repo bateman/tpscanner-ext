@@ -15,13 +15,13 @@ export function removeUnavailableItems(deals) {
 
 export function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
     let bestIndividualDeals = [];
-    for (let i = 0; i < itemDeals.length; i++) {
-        if (itemDeals[i].free_delivery && itemDeals[i].price * itemQuantity >= itemDeals[i].free_delivery) {
-            itemDeals[i].name = itemName;
-            itemDeals[i].total_price = itemDeals[i].price * itemQuantity;
-            itemDeals[i].total_price_plus_delivery = itemDeals[i].free_delivery && itemDeals[i].total_price >= itemDeals[i].free_delivery ? itemDeals[i].total_price : itemDeals[i].total_price + itemDeals[i].delivery_price;
-            itemDeals[i].quantity = itemQuantity;
-            bestIndividualDeals.push(itemDeals[i]);
+    for (let deal of itemDeals) {
+        if (deal.free_delivery && deal.price * itemQuantity >= deal.free_delivery) {
+            deal.name = itemName;
+            deal.total_price = deal.price * itemQuantity;
+            deal.total_price_plus_delivery = deal.free_delivery && deal.total_price >= deal.free_delivery ? deal.total_price : deal.total_price + deal.delivery_price;
+            deal.quantity = itemQuantity;
+            bestIndividualDeals.push(deal);
         }
     }
     // sort best deals by total price plus delivery
