@@ -1,6 +1,6 @@
 console.log('dealsfinder.js loaded');
 
-function removeUnavailableItems(deals) {
+export function removeUnavailableItems(deals) {
     let count = 0;
     for (let i = 0; i < deals.length; i++) {
         // Remove the deal if it's not available unless seller contains "Amazon"
@@ -13,7 +13,7 @@ function removeUnavailableItems(deals) {
     return [count, deals];
 }
 
-function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
+export function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
     let bestIndividualDeals = [];
     for (let i = 0; i < itemDeals.length; i++) {
         if (itemDeals[i].free_delivery && itemDeals[i].price * itemQuantity >= itemDeals[i].free_delivery) {
@@ -29,7 +29,7 @@ function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
     return bestIndividualDeals;
 }
 
-function findBestCumulativeDeals(individualDeals) {
+export function findBestCumulativeDeals(individualDeals) {
     // prepare the dictionary
     let itemsDict = {};
     for (let itemName in individualDeals) {
@@ -108,7 +108,7 @@ function findBestCumulativeDeals(individualDeals) {
 // Find the best overall deal by comparing the total amount spent by buying the best individual offer
 // for each item (i.e., each item from different stores) to the best cumulative offer (i.e., all items 
 // from the same store).
-function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
+export function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     let notAllItemsAvailable = false;
     // Step 1: Calculate the total cost of buying each item individually from the best store for that item
     let totalIndividualCost = 0;

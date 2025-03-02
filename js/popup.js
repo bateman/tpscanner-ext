@@ -1,4 +1,5 @@
 import { extractPricesPlusShipping } from './scraping.js';
+import { removeUnavailableItems, findBestIndividualDeals, findBestCumulativeDeals, findBestOverallDeal } from './dealsfinder.js';
 var browser = window.msBrowser || window.browser || window.chrome;
 console.log('popup.js loaded');
 
