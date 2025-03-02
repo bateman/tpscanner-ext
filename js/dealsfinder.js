@@ -204,11 +204,16 @@ export function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
         }
         if (n > 0) {
             for (let itemName in bestIndividualDeals) {
-                let bestDeal = Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) ?
-                    bestIndividualDeals[itemName][0] : null; // Get the best deal for the item
-                if (bestDeal)
-                    totalIndividualCost += bestDeal.total_price_plus_delivery;
-                else {
+                if (Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName)) {
+                    const itemDeals = bestIndividualDeals[itemName];
+                    let bestDeal = Array.isArray(itemDeals) && itemDeals.length > 0 ? itemDeals[0] : null;
+                    if (bestDeal && typeof bestDeal.total_price_plus_delivery === 'number') {
+                        totalIndividualCost += bestDeal.total_price_plus_delivery;
+                    } else {
+                        console.log('No valid deal found for ' + itemName);
+                        notAllItemsAvailable = true;
+                    }
+                } else {
                     console.log('No best deal found for ' + itemName);
                     notAllItemsAvailable = true;
                 }
