@@ -134,7 +134,7 @@ export function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     if (bestIndividualDeals) {
         let n = 0;
         for (var itemName in bestIndividualDeals) {
-            n += Objecat.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) && 
+            n += Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) && 
                 Array.isArray(bestIndividualDeals[itemName]) ? 
                 bestIndividualDeals[itemName].length : 0;
         }
