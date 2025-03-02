@@ -76,18 +76,28 @@ function loadBestDeals() {
 function populatebBestInividualDealsTable(bII, bOD) {
     var table = document.getElementById('bii');
     let previousItemName = '';
-    for (var itemName in bII) {
-        var itemDeals = bII[itemName];
-        for (let i = 0; i < itemDeals.length; i++) {
+
+    Object.keys(bII).forEach(itemName => {
+        // Verify property ownership
+        if (!bII.hasOwnProperty(itemName)) {
+            return;
+        }
+        
+        const itemDeals = bII[itemName];
+        if (!Array.isArray(itemDeals)) {
+            return;
+        }
+
+        for (const deal of itemDeals) {
             var row = table.insertRow(-1);
             if (previousItemName !== itemName) {
                 // apply background color as defined by css rule (best-deal class)
                 row.className = 'best-deal';
             }        
-            var cellProduct= row.insertCell(0);
+            var cellProduct = row.insertCell(0);
             // add item url as link of product name
             var link = document.createElement('a');
-            link.href = itemDeals[i].link;
+            link.href = deal.link;  // Changed from itemDeals[i].link
             link.textContent = itemName;
             link.target = '_blank';
             cellProduct.appendChild(link);
@@ -99,51 +109,51 @@ function populatebBestInividualDealsTable(bII, bOD) {
             previousItemName = itemName;  
             // add quantity cell
             var cellQty = row.insertCell(1);
-            cellQty.textContent = itemDeals[i].quantity;
+            cellQty.textContent = deal.quantity;
             // add price cell
             var cellPrice = row.insertCell(2);
-            cellPrice.textContent = itemDeals[i].price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+            cellPrice.textContent = deal.price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add total price cell
             var cellTotalPrice = row.insertCell(3);
-            cellTotalPrice.textContent = itemDeals[i].total_price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+            cellTotalPrice.textContent = deal.total_price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add delivery cell
             var cellDelivery = row.insertCell(4);
-            cellDelivery.textContent = itemDeals[i].delivery_price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+            cellDelivery.textContent = deal.delivery_price.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add free delivery from cell
             var cellFreeDelivery = row.insertCell(5);
-            var temp = itemDeals[i].free_delivery ? itemDeals[i].free_delivery : 0.0;
+            var temp = deal.free_delivery ? deal.free_delivery : 0.0;
             cellFreeDelivery.textContent = temp.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add total price + delivery cell
             var cellTotalPricePlusDelivery = row.insertCell(6);
-            cellTotalPricePlusDelivery.textContent = itemDeals[i].total_price_plus_delivery.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+            cellTotalPricePlusDelivery.textContent = deal.total_price_plus_delivery.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
             // add availability cell
             var cellAvailability = row.insertCell(7);
-            let text = document.createTextNode(itemDeals[i].availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
+            let text = document.createTextNode(deal.availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
-            symbol.innerHTML = itemDeals[i].availability ? '&#10003;' : '&#10007;';
+            symbol.innerHTML = deal.availability ? '&#10003;' : '&#10007;';
             cellAvailability.innerHTML = '';
             cellAvailability.appendChild(text);
             cellAvailability.appendChild(symbol);
             // add seller cell
             var cellSeller = row.insertCell(8);
             var linkSeller = document.createElement('a');
-            linkSeller.href = itemDeals[i].seller_link;
-            linkSeller.textContent = itemDeals[i].seller;
+            linkSeller.href = deal.seller_link;
+            linkSeller.textContent = deal.seller;
             linkSeller.target = '_blank';
             cellSeller.appendChild(linkSeller);
             cellSeller.appendChild(document.createTextNode(' ('));
             var linkSellerReviews = document.createElement('a');
-            linkSellerReviews.href = itemDeals[i].seller_reviews_link;
-            linkSellerReviews.textContent = itemDeals[i].seller_reviews;
+            linkSellerReviews.href = deal.seller_reviews_link;
+            linkSellerReviews.textContent = deal.seller_reviews;
             linkSellerReviews.target = '_blank';
             cellSeller.appendChild(linkSellerReviews);
             cellSeller.appendChild(document.createTextNode(')'));
             // add seller rating cell
             var cellSellerRating = row.insertCell(9);
-            var ratingText = itemDeals[i].seller_rating ? itemDeals[i].seller_rating.toFixed(1) + ' / 5 \u2605' : 'N/A';
+            var ratingText = deal.seller_rating ? deal.seller_rating.toFixed(1) + ' / 5 \u2605' : 'N/A';
             cellSellerRating.appendChild(document.createTextNode(ratingText));
         }
-    }
+    });
 }
 
 function populateBestCumulativeDealsTable(bCD, bOD) {
