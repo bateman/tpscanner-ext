@@ -119,7 +119,7 @@ function processSellerDeals(individualDeals, seller) {
         const item = individualDeals[itemName];
         if (!isValidItem(item)) continue;
         
-        const sellerDeal = findSellerDealForItem(item.deals, seller, item.quantity);
+        const sellerDeal = findSellerDealForItem(item.deals, seller);
         if (sellerDeal) {
             updateBestDealItems(bestDealItems, sellerDeal, itemName, item.quantity);
         }
@@ -138,7 +138,7 @@ function isValidItem(item) {
 }
 
 // Find deal from specific seller for an item
-function findSellerDealForItem(itemDeals, seller, itemQuantity) {
+function findSellerDealForItem(itemDeals, seller) {
     return itemDeals.find(deal => deal && deal.seller === seller);
 }
 
