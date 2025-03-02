@@ -43,13 +43,6 @@ export function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
     return bestIndividualDeals;
 }
 
-// Function to check for dangerous property keys to prevent prototype pollution
-function isSecureKey(key) {
-    // Reject potentially dangerous keys that could lead to prototype pollution
-    return typeof key === 'string' && 
-           !['__proto__', 'constructor', 'prototype'].includes(key);
-}
-
 export function findBestCumulativeDeals(individualDeals) {
     // Extract dictionary of sellers for each product
     const itemsDict = createItemSellersDictionary(individualDeals);
@@ -72,10 +65,6 @@ export function findBestCumulativeDeals(individualDeals) {
 function createItemSellersDictionary(individualDeals) {
     let itemsDict = {};
     for (let itemName in individualDeals) {
-        // Skip dangerous keys to prevent object injection attacks
-        if (!isSecureKey(itemName)) 
-            continue;
-
         let itemDeals = individualDeals[itemName].deals;
         let itemSellers = [];
         for (const deal of itemDeals) {
@@ -111,10 +100,7 @@ function calculateDealsForCommonSellers(individualDeals, commonSellers) {
     let bestCumulativeDeals = {};
     
     for (let seller of commonSellers) {
-        // Ensure seller name is safe to use as an object key
-        if (isSecureKey(seller)) {
-            bestCumulativeDeals[seller] = processSellerDeals(individualDeals, seller);
-        }
+        bestCumulativeDeals[seller] = processSellerDeals(individualDeals, seller);
     }
     
     return bestCumulativeDeals;
@@ -172,10 +158,6 @@ function updateBestDealItems(bestDealItems, deal, itemName, itemQuantity) {
 // Add delivery prices to cumulative prices
 function addDeliveryPrices(bestCumulativeDeals) {
     for (let seller in bestCumulativeDeals) {
-        // Skip dangerous keys to prevent object injection attacks
-        if (!isSecureKey(seller)) 
-            continue;
-
         let item = bestCumulativeDeals[seller];
         if (item.freeDelivery && item.cumulativePrice >= item.freeDelivery) {
             item.cumulativePricePlusDelivery = item.cumulativePrice;
@@ -193,7 +175,6 @@ function sortAndFormatDeals(bestCumulativeDeals) {
     // Sort best deals by price
     let sortedBestCumulativeDeals = {};
     Object.keys(bestCumulativeDeals)
-        .filter(key => isSecureKey(key)) // Filter out dangerous keys
         .sort((a, b) => bestCumulativeDeals[a].cumulativePricePlusDelivery - bestCumulativeDeals[b].cumulativePricePlusDelivery)
         .forEach(key => {
             sortedBestCumulativeDeals[key] = bestCumulativeDeals[key];
@@ -201,7 +182,6 @@ function sortAndFormatDeals(bestCumulativeDeals) {
     
     // Convert to array of objects for return
     let arrayBestCumulativeDeals = Object.keys(sortedBestCumulativeDeals).map(key => {
-        // Use computed property with key validation
         return { [key]: sortedBestCumulativeDeals[key] };
     });
     
@@ -213,26 +193,19 @@ function sortAndFormatDeals(bestCumulativeDeals) {
 // from the same store).
 export function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     let notAllItemsAvailable = false;
+    // Step 1: Calculate the total cost of buying each item individually from the best store for that item
     let totalIndividualCost = 0;
-    
     if (bestIndividualDeals) {
         let n = 0;
         for (var itemName in bestIndividualDeals) {
-            // Skip dangerous keys to prevent object injection attacks
-            if (!isSecureKey(itemName)) continue;
-            
             n += Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) && 
                 (bestIndividualDeals[itemName] && Array.isArray(bestIndividualDeals[itemName])) ? 
                 bestIndividualDeals[itemName].length : 0;
         }
-        
         if (n > 0) {
             for (let itemName in bestIndividualDeals) {
-                // Skip dangerous keys to prevent object injection attacks
-                if (!isSecureKey(itemName)) continue;
-                
                 let bestDeal = Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) ?
-                    bestIndividualDeals[itemName][0] : null;
+                    bestIndividualDeals[itemName][0] : null; // Get the best deal for the item
                 if (bestDeal)
                     totalIndividualCost += bestDeal.total_price_plus_delivery;
                 else {
