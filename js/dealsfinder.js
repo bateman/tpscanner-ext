@@ -198,9 +198,13 @@ export function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     if (bestIndividualDeals) {
         let n = 0;
         for (var itemName in bestIndividualDeals) {
-            n += Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) && 
-                (bestIndividualDeals[itemName] && Array.isArray(bestIndividualDeals[itemName])) ? 
-                bestIndividualDeals[itemName].length : 0;
+            //  Check that itemName is a valid string and that the property actually 
+            // belongs to the object
+            if (typeof itemName === 'string' && 
+                Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName)) {
+                const itemDeals = bestIndividualDeals[itemName];
+                n += (itemDeals && Array.isArray(itemDeals)) ? itemDeals.length : 0;
+            }
         }
         if (n > 0) {
             for (let itemName in bestIndividualDeals) {
