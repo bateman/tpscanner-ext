@@ -44,19 +44,42 @@ export function findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
 }
 
 export function findBestCumulativeDeals(individualDeals) {
-    // prepare the dictionary
+    // Extract dictionary of sellers for each product
+    const itemsDict = createItemSellersDictionary(individualDeals);
+    
+    // Find common sellers across all items
+    const commonSellers = findCommonSellers(itemsDict);
+    console.log(commonSellers.length + ' common seller(s) found');
+
+    // For each common seller, calculate cumulative price
+    let bestCumulativeDeals = calculateDealsForCommonSellers(individualDeals, commonSellers);
+
+    // Add delivery costs to cumulative prices
+    bestCumulativeDeals = addDeliveryPrices(bestCumulativeDeals);
+
+    // Sort and format the results
+    return sortAndFormatDeals(bestCumulativeDeals);
+}
+
+// Create a dictionary mapping items to their sellers
+function createItemSellersDictionary(individualDeals) {
     let itemsDict = {};
     for (let itemName in individualDeals) {
         let itemDeals = individualDeals[itemName].deals;
-        let itemSellers = []
+        let itemSellers = [];
         for (const deal of itemDeals) {
             itemSellers.push(deal.seller);
         }
         itemsDict[itemName] = itemSellers;
     }
-    // Find the common sellers
+    return itemsDict;
+}
+
+// Find sellers common to all items
+function findCommonSellers(itemsDict) {
     // Get the sellers for the first item
     const firstItemSellers = new Set(itemsDict[Object.keys(itemsDict)[0]]);
+    
     // Iterate through the items and find common sellers
     for (const itemSellers of Object.values(itemsDict)) {
         // Filter the common sellers for each item
@@ -67,23 +90,27 @@ export function findBestCumulativeDeals(individualDeals) {
             }
         });
     }
+    
     // Convert the set back to an array
-    const commonSellers = Array.from(firstItemSellers);
-    console.log(commonSellers.length + ' common seller(s) found');
+    return Array.from(firstItemSellers);
+}
 
-    // for each common seller, find the cumulative price of all items sold by that seller
-    // and sort the items by price
+// Calculate deals for all common sellers
+function calculateDealsForCommonSellers(individualDeals, commonSellers) {
     let bestCumulativeDeals = {};
-        for (let seller of commonSellers) {
+    
+    for (let seller of commonSellers) {
         let bestDealItems = {};
-        // Usa Object.keys() per iterare sulle chiavi in modo sicuro
+        // Use Object.keys() for safe iteration over keys
         const itemNames = Object.keys(individualDeals);
+        
         for (const itemName of itemNames) {
-            // Check if the object and its properties exists before accessing them
+            // Check if the object and its properties exist before accessing them
             const item = individualDeals[itemName];
             if (item && typeof item === 'object' && item.deals && Array.isArray(item.deals) && 'quantity' in item) {
                 const itemDeals = item.deals;
-                const itemQuantity = item.quantity; 
+                const itemQuantity = item.quantity;
+                
                 for (const deal of itemDeals) {
                     if (deal && deal.seller === seller) {
                         bestDealItems.name = itemName;
@@ -99,10 +126,15 @@ export function findBestCumulativeDeals(individualDeals) {
                 }
             }
         }
+        
         bestCumulativeDeals[seller] = bestDealItems;
     }
+    
+    return bestCumulativeDeals;
+}
 
-    // add the delivery price to the cumulative price if the cumulative price is less than the free delivery price threshold
+// Add delivery prices to cumulative prices
+function addDeliveryPrices(bestCumulativeDeals) {
     for (let seller in bestCumulativeDeals) {
         let item = bestCumulativeDeals[seller];
         if (item.freeDelivery && item.cumulativePrice >= item.freeDelivery) {
@@ -112,15 +144,25 @@ export function findBestCumulativeDeals(individualDeals) {
         }
         bestCumulativeDeals[seller] = item;
     }
+    
+    return bestCumulativeDeals;
+}
 
-    // sort best deals by price
+// Sort deals by price and format for return
+function sortAndFormatDeals(bestCumulativeDeals) {
+    // Sort best deals by price
     let sortedBestCumulativeDeals = {};
-    Object.keys(bestCumulativeDeals).sort((a, b) => bestCumulativeDeals[a].cumulativePricePlusDelivery - bestCumulativeDeals[b].cumulativePricePlusDelivery).forEach(key => {
-        sortedBestCumulativeDeals[key] = bestCumulativeDeals[key];
-    });
+    Object.keys(bestCumulativeDeals)
+        .sort((a, b) => bestCumulativeDeals[a].cumulativePricePlusDelivery - bestCumulativeDeals[b].cumulativePricePlusDelivery)
+        .forEach(key => {
+            sortedBestCumulativeDeals[key] = bestCumulativeDeals[key];
+        });
+    
+    // Convert to array of objects for return
     let arrayBestCumulativeDeals = Object.keys(sortedBestCumulativeDeals).map(key => {
         return { [key]: sortedBestCumulativeDeals[key] };
     });
+    
     return arrayBestCumulativeDeals;
 }
 
