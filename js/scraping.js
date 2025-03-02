@@ -64,7 +64,7 @@ export function extractPricesPlusShipping(htmlContent) {
     return results;
 }
 
-function extractBestPriceShippingIncluded(htmlContent) {
+export function extractBestPriceShippingIncluded(htmlContent) {
     let item = {};
     let itemName = "";
     try {
