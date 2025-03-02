@@ -100,37 +100,59 @@ function calculateDealsForCommonSellers(individualDeals, commonSellers) {
     let bestCumulativeDeals = {};
     
     for (let seller of commonSellers) {
-        let bestDealItems = {};
-        // Use Object.keys() for safe iteration over keys
-        const itemNames = Object.keys(individualDeals);
-        
-        for (const itemName of itemNames) {
-            // Check if the object and its properties exist before accessing them
-            const item = individualDeals[itemName];
-            if (item && typeof item === 'object' && item.deals && Array.isArray(item.deals) && 'quantity' in item) {
-                const itemDeals = item.deals;
-                const itemQuantity = item.quantity;
-                
-                for (const deal of itemDeals) {
-                    if (deal && deal.seller === seller) {
-                        bestDealItems.name = itemName;
-                        bestDealItems.sellerLink = deal.seller_link;
-                        bestDealItems.sellerReviews = deal.seller_reviews;
-                        bestDealItems.sellerReviewsLink = deal.seller_reviews_link;
-                        bestDealItems.sellerRating = deal.seller_rating;
-                        bestDealItems.deliveryPrice = deal.delivery_price;
-                        bestDealItems.freeDelivery = deal.free_delivery;
-                        bestDealItems.availability = deal.availability;
-                        bestDealItems.cumulativePrice = (bestDealItems.cumulativePrice || 0) + (deal.price * itemQuantity);
-                    }
-                }
-            }
-        }
-        
-        bestCumulativeDeals[seller] = bestDealItems;
+        bestCumulativeDeals[seller] = processSellerDeals(individualDeals, seller);
     }
     
     return bestCumulativeDeals;
+}
+
+// Helper function to process deals for a specific seller
+function processSellerDeals(individualDeals, seller) {
+    let bestDealItems = {
+        cumulativePrice: 0
+    };
+    
+    // Use Object.keys() for safe iteration over keys
+    const itemNames = Object.keys(individualDeals);
+    
+    for (const itemName of itemNames) {
+        const item = individualDeals[itemName];
+        if (!isValidItem(item)) continue;
+        
+        const sellerDeal = findSellerDealForItem(item.deals, seller, item.quantity);
+        if (sellerDeal) {
+            updateBestDealItems(bestDealItems, sellerDeal, itemName, item.quantity);
+        }
+    }
+    
+    return bestDealItems;
+}
+
+// Check if item is valid and has required properties
+function isValidItem(item) {
+    return item && 
+           typeof item === 'object' && 
+           item.deals && 
+           Array.isArray(item.deals) && 
+           'quantity' in item;
+}
+
+// Find deal from specific seller for an item
+function findSellerDealForItem(itemDeals, seller, itemQuantity) {
+    return itemDeals.find(deal => deal && deal.seller === seller);
+}
+
+// Update best deal items with data from found deal
+function updateBestDealItems(bestDealItems, deal, itemName, itemQuantity) {
+    bestDealItems.name = itemName;
+    bestDealItems.sellerLink = deal.seller_link;
+    bestDealItems.sellerReviews = deal.seller_reviews;
+    bestDealItems.sellerReviewsLink = deal.seller_reviews_link;
+    bestDealItems.sellerRating = deal.seller_rating;
+    bestDealItems.deliveryPrice = deal.delivery_price;
+    bestDealItems.freeDelivery = deal.free_delivery;
+    bestDealItems.availability = deal.availability;
+    bestDealItems.cumulativePrice += (deal.price * itemQuantity);
 }
 
 // Add delivery prices to cumulative prices
