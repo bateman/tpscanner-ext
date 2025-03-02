@@ -88,14 +88,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var rowExists = false;
 
         // Check if a row with the same title already exists
-        for (var i = 0; i < itemsTable.rows.length; i++) {
-            if (itemsTable.rows[i].cells[0].textContent === title) {
+        for (let row of itemsTable.rows) {
+            if (row.cells[0].textContent === title) {
                 // Update the quantity
-                itemsTable.rows[i].cells[1].getElementsByTagName('input')[0].value = quantity;
+                row.cells[1].getElementsByTagName('input')[0].value = quantity;
                 rowExists = true;
 
                 // Add the blink class
-                let row = itemsTable.rows[i];
                 row.classList.add('blink');
                 // Change the background color
                 row.style.backgroundColor = '#f4f8fb';
