@@ -49,8 +49,8 @@ export function findBestCumulativeDeals(individualDeals) {
     for (let itemName in individualDeals) {
         let itemDeals = individualDeals[itemName].deals;
         let itemSellers = []
-        for (let i = 0; i < itemDeals.length; i++) {
-            itemSellers.push(itemDeals[i].seller);
+        for (const deal of itemDeals) {
+            itemSellers.push(deal.seller);
         }
         itemsDict[itemName] = itemSellers;
     }
