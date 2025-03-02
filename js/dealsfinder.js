@@ -78,15 +78,13 @@ export function findBestCumulativeDeals(individualDeals) {
         let bestDealItems = {};
         // Usa Object.keys() per iterare sulle chiavi in modo sicuro
         const itemNames = Object.keys(individualDeals);
-        for (let i = 0; i < itemNames.length; i++) {
-            const itemName = itemNames[i];
+        for (const itemName of itemNames) {
             // Check if the object and its properties exists before accessing them
             const item = individualDeals[itemName];
             if (item && typeof item === 'object' && item.deals && Array.isArray(item.deals) && 'quantity' in item) {
                 const itemDeals = item.deals;
                 const itemQuantity = item.quantity; 
-                for (let j = 0; j < itemDeals.length; j++) {
-                    const deal = itemDeals[j];
+                for (const deal of itemDeals) {
                     if (deal && deal.seller === seller) {
                         bestDealItems.name = itemName;
                         bestDealItems.sellerLink = deal.seller_link;
