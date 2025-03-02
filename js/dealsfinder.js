@@ -3,11 +3,16 @@ console.log('dealsfinder.js loaded');
 export function removeUnavailableItems(deals) {
     let count = 0;
     for (let i = 0; i < deals.length; i++) {
-        // Remove the deal if it's not available unless seller contains "Amazon"
-        if (deals[i].availability === false && !deals[i].seller.toLowerCase().includes('amazon')) {
-            deals.splice(i, 1);
-            i--; // Decrement index to account for removed deal
-            count++;
+        const currentDeal = deals[i];
+        if (currentDeal && typeof currentDeal === 'object') {
+            // Remove the deal if it's not available unless seller contains "Amazon"
+            if (currentDeal.availability === false && 
+                currentDeal.seller && 
+                !currentDeal.seller.toLowerCase().includes('amazon')) {
+                deals.splice(i, 1);
+                i--; // Decrement index to account for removed deal
+                count++;
+            }
         }
     }
     return [count, deals];
