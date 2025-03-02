@@ -2,19 +2,28 @@ console.log('dealsfinder.js loaded');
 
 export function removeUnavailableItems(deals) {
     let count = 0;
-    for (let i = 0; i < deals.length; i++) {
-        const currentDeal = deals[i];
+    const newDeals = [];
+    
+    for (const currentDeal of deals) {
         if (currentDeal && typeof currentDeal === 'object') {
             // Remove the deal if it's not available unless seller contains "Amazon"
             if (currentDeal.availability === false && 
                 currentDeal.seller && 
                 !currentDeal.seller.toLowerCase().includes('amazon')) {
-                deals.splice(i, 1);
-                i--; // Decrement index to account for removed deal
                 count++;
+                // Skip this deal from the final array
+            } else {
+                newDeals.push(currentDeal);
             }
+        } else {
+            newDeals.push(currentDeal);
         }
     }
+    
+    // Update the original array
+    deals.length = 0;
+    deals.push(...newDeals);
+    
     return [count, deals];
 }
 
@@ -94,7 +103,6 @@ export function findBestCumulativeDeals(individualDeals) {
         }
         bestCumulativeDeals[seller] = bestDealItems;
     }
-
 
     // add the delivery price to the cumulative price if the cumulative price is less than the free delivery price threshold
     for (let seller in bestCumulativeDeals) {
