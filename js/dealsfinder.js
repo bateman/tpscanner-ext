@@ -138,7 +138,7 @@ export function findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
         }
         if (n > 0) {
             for (let itemName in bestIndividualDeals) {
-                let bestDeal = bestIndividualDeals[itemName][0]; // Get the best deal for the item
+                let bestDeal = Object.prototype.hasOwnProperty.call(bestIndividualDeals, itemName) ? bestIndividualDeals[itemName][0] : null; // Get the best deal for the item
                 if (bestDeal)
                     totalIndividualCost += bestDeal.total_price_plus_delivery;
                 else {
