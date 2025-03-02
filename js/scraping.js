@@ -1,6 +1,6 @@
 console.log('scraping.js loaded');
 
-function extractPricesPlusShipping(htmlContent) {
+export function extractPricesPlusShipping(htmlContent) {
     const results = [];
 
     try {
