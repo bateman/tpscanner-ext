@@ -1,3 +1,6 @@
+/*global XLSX*/
+/*eslint-env browser*/
+
 var browser = window.msBrowser || window.browser || window.chrome;
 console.log('dealsdisplayer.js loaded');
 
@@ -130,7 +133,7 @@ function populatebBestInividualDealsTable(bII, bOD) {
             var cellAvailability = row.insertCell(7);
             let text = document.createTextNode(deal.availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
-            symbol.innerHTML = deal.availability ? '&#10003;' : '&#10007;';
+            symbol.innerHTML = deal.availability ? '\u2713' : '\u2717';
             cellAvailability.innerHTML = '';
             cellAvailability.appendChild(text);
             cellAvailability.appendChild(symbol);
@@ -163,7 +166,7 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
         for (let seller in cumulativeDeal) {
             var itemDeal = cumulativeDeal[seller];
             var row = table.insertRow(-1);      
-            if (i == 0) {
+            if (i === 0) {
                 // apply background color as defined by css rule (best-deal class)
                 row.className = 'best-deal';
             }    
@@ -182,7 +185,7 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
             cellSeller.appendChild(linkSellerReviews);
             cellSeller.appendChild(document.createTextNode(')'));
             // add best deal badge unicode image
-            if (i == 0 && bOD.best_deal_type === 'cumulative') {
+            if (i === 0 && bOD.best_deal_type === 'cumulative') {
                 var img = document.createTextNode(' \uD83E\uDD47');
                 cellSeller.appendChild(img);
             }
@@ -207,8 +210,8 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
             var cellAvailability = row.insertCell(6);
             let text = document.createTextNode(itemDeal.availability ? browser.i18n.getMessage("dealsDisplayerYes") : browser.i18n.getMessage("dealsDisplayerNo"));
             let symbol = document.createElement('span');
-            symbol.innerHTML = itemDeal.availability ? '&#10003;' : '&#10007;';
-            cellAvailability.innerHTML = '';
+            symbol.textContent = itemDeal.availability ? '\u2713' : '\u2717';
+            cellAvailability.textContent = '';
             cellAvailability.appendChild(text);
             cellAvailability.appendChild(symbol);
         }

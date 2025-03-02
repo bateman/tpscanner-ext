@@ -21,7 +21,8 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/bateman/tpscanner-ext?style=flat-square)
 ![GitHub language count](https://img.shields.io/github/languages/count/bateman/tpscanner-ext?style=flat-square)
 ![GitHub top language](https://img.shields.io/github/languages/top/bateman/tpscanner-ext?style=flat-square)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/bateman/tpscanner-ext?style=flat-square)
+![Codacy grade](https://img.shields.io/codefactor/grade/github/bateman/tpscanner-ext?style=flat-square&label=CodeFactor%20grade)
+![Codacy grade](https://img.shields.io/codacy/grade/145eb10805cb455eb49da3000b0ffe02?style=flat-square&label=Codacy%20grade)
 ![GitHub License](https://img.shields.io/github/license/bateman/tpscanner-ext?style=flat-square)
 
 A cross-browser extension to find the best prices for items listed under [Trovaprezzi.it](https://www.trovaprezzi.it).
@@ -61,8 +62,8 @@ Contributions are welcome! Please submit a pull request or create an issue to co
 1. Open your terminal to the project directory.
 2. Run the `make all` command to build the extension for Chrome, Firefox, and Safari. This will create each build in the `build/` directory.
 
-Note:
-* Safari build will start only on macOS, if XCode is installed.
+> [!NOTE]  
+> Safari build will start only on macOS, if XCode is installed.
 
 ### Manual installation
 
@@ -94,9 +95,9 @@ Make sure your browser is not running before executing any of these commands.
 * **Edge**: `make run/edge`
 * **Firefox**: `make run/firefox`
 
-Note:
-* Unlike Chrome, Edge does not run in development mode
-* For Firefox, the script assumes you have "Firefox Developer Edition" installed. You can easily change the name to "Firefox" in the `make` script; it also requires `web-ext` to be installed. 
+> [!NOTE]  
+>  Unlike Chrome, Edge does not run in development mode
+> For Firefox, the script assumes you have "Firefox Developer Edition" installed. You can easily change the name to "Firefox" in the `make` script; it also requires `web-ext` to be installed. 
 
 ## Donations
 
