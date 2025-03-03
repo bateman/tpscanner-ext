@@ -1,4 +1,5 @@
 import { extractPricesPlusShipping } from './scraping.js';
+import { removeUnavailableItems, findBestIndividualDeals, findBestCumulativeDeals, findBestOverallDeal } from './dealsfinder.js';
 var browser = window.msBrowser || window.browser || window.chrome;
 console.log('popup.js loaded');
 
@@ -87,14 +88,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var rowExists = false;
 
         // Check if a row with the same title already exists
-        for (var i = 0; i < itemsTable.rows.length; i++) {
-            if (itemsTable.rows[i].cells[0].textContent === title) {
+        for (let row of itemsTable.rows) {
+            if (row.cells[0].textContent === title) {
                 // Update the quantity
-                itemsTable.rows[i].cells[1].getElementsByTagName('input')[0].value = quantity;
+                row.cells[1].getElementsByTagName('input')[0].value = quantity;
                 rowExists = true;
 
                 // Add the blink class
-                let row = itemsTable.rows[i];
                 row.classList.add('blink');
                 // Change the background color
                 row.style.backgroundColor = '#f4f8fb';
@@ -141,7 +141,9 @@ document.addEventListener('DOMContentLoaded', function () {
             removeButton.textContent = 'x';
             removeButton.classList.add('remove');
             removeButton.addEventListener('click', function() {
-                delete selectedItems[title];
+                selectedItems = Object.fromEntries(
+                    Object.entries(selectedItems).filter(([key]) => key !== title)
+                );
                 localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
                 itemsTable.deleteRow(row.rowIndex - 1);
                 // Clear the box-deals message when an item is removed from the list
@@ -202,32 +204,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function updateBestDealsMessage(individualDeals, cumulativeDeals, bestOverallDeal) {
     const boxDeals = document.getElementById('box-deals');
-    let n = 0;
+    
+    // Calculate individual deals count (n)
+    let n = -1;
     if(individualDeals) {
+        n = 0;
         for(var itemName in individualDeals) {
             n += individualDeals[itemName].length;
         }
-    } else {
-        n = -1;
     }
+    
+    // Calculate cumulative deals count (m)
     let m = cumulativeDeals ? cumulativeDeals.length : -1;
     m = m ? m : 0;
-    let t = 0
+    
+    // Get best total price (t)
+    let t = 0;
     if (bestOverallDeal && bestOverallDeal.best_total_price) {
-        t = bestOverallDeal.best_total_price
+        t = bestOverallDeal.best_total_price;
     }
+    
+    // Update message if data is available
     if (n !== -1 && m !== -1) {
-        let textContext = browser.i18n.getMessage("popupBestDealsMessageFound") + n;
-        textContext += browser.i18n.getMessage("popupBestDealsMessageIndividuals") + m; 
-        textContext += browser.i18n.getMessage("popupBestDealsMessageCumulative");
-        textContext += browser.i18n.getMessage("popupBestDealsMessagePrice") + t + ' \u20AC';
-        boxDeals.textContent = textContext;
-
-        boxDeals.classList.add('blink');
-        setTimeout(() => boxDeals.classList.remove('blink'), 1000);
+        displayDealsMessage(boxDeals, n, m, t);
     } else {
         boxDeals.textContent = '';
     }
+}
+
+function displayDealsMessage(boxDeals, individualCount, cumulativeCount, totalPrice) {
+    let textContext = browser.i18n.getMessage("popupBestDealsMessageFound") + individualCount;
+    textContext += browser.i18n.getMessage("popupBestDealsMessageIndividuals") + cumulativeCount; 
+    textContext += browser.i18n.getMessage("popupBestDealsMessageCumulative");
+    textContext += browser.i18n.getMessage("popupBestDealsMessagePrice") + totalPrice + ' \u20AC';
+    
+    boxDeals.textContent = textContext;
+    
+    // Add animation effect
+    boxDeals.classList.add('blink');
+    setTimeout(() => boxDeals.classList.remove('blink'), 1000);
 }
 
 async function updateImageSrc() {

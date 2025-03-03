@@ -1,6 +1,6 @@
 console.log('scraping.js loaded');
 
-function extractPricesPlusShipping(htmlContent) {
+export function extractPricesPlusShipping(htmlContent) {
     const results = [];
 
     try {
@@ -64,7 +64,7 @@ function extractPricesPlusShipping(htmlContent) {
     return results;
 }
 
-function extractBestPriceShippingIncluded(htmlContent) {
+export function extractBestPriceShippingIncluded(htmlContent) {
     let item = {};
     let itemName = "";
     try {
@@ -134,7 +134,7 @@ function convertDataTypes(merchant, merchantLink, merchantReviews, merchantRevie
     item.seller_reviews_link = 'https://www.trovaprezzi.it' + merchantReviewsLink;
     item.seller_rating = merchantRating ? parseFloat(merchantRating.split(" ")[2].replace("rate", "")) / 10.0 : null;
     item.price = parseFloat(price.match(numberPattern)[0].replace(",", "."));
-    item.quantity = quantity;
+    //item.quantity = quantity;
     item.delivery_price = deliveryPrice && deliveryPrice.match(numberPattern) 
         ? parseFloat(deliveryPrice.match(numberPattern)[0].replace(",", ".")) 
         : 0.0;
