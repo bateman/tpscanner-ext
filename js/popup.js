@@ -141,7 +141,9 @@ document.addEventListener('DOMContentLoaded', function () {
             removeButton.textContent = 'x';
             removeButton.classList.add('remove');
             removeButton.addEventListener('click', function() {
-                delete selectedItems[title];
+                selectedItems = Object.fromEntries(
+                    Object.entries(selectedItems).filter(([key]) => key !== title)
+                );
                 localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
                 itemsTable.deleteRow(row.rowIndex - 1);
                 // Clear the box-deals message when an item is removed from the list
