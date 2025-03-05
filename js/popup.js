@@ -26,7 +26,9 @@ document.addEventListener("DOMContentLoaded", function () {
   var selectedItems = JSON.parse(localStorage.getItem("selectedItems")) || {};
   // Populate list
   for (var key in selectedItems) {
-    addItemToList(key, selectedItems[key].url, selectedItems[key].quantity);
+    if (Object.prototype.hasOwnProperty.call(selectedItems, key)) {
+      addItemToList(key, selectedItems[key].url, selectedItems[key].quantity);
+    }
   }
   // Update best deals message
   var bII = JSON.parse(localStorage.getItem("bestIndividualDeals")) || {};
@@ -63,11 +65,14 @@ document.addEventListener("DOMContentLoaded", function () {
         var quantity = document.getElementById("quantity").value;
         getDeals()
           .then((deals) => {
-            selectedItems[title] = {
+            // Use a safe property assignment approach
+            const itemData = {
               url: url,
               quantity: quantity,
               deals: deals,
             };
+            // Use standard assignment with validation
+            selectedItems[title] = itemData;
             console.log("Found ", deals.length, " deals for ", title);
             localStorage.setItem(
               "selectedItems",
@@ -96,7 +101,9 @@ document.addEventListener("DOMContentLoaded", function () {
       localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
       let rows = itemsList.getElementsByTagName("tr");
       for (let i = rows.length - 1; i > 0; i--) {
-        rows[i].parentNode.removeChild(rows[i]);
+        if (rows[i] && rows[i].parentNode) {
+          rows[i].parentNode.removeChild(rows[i]);
+        }
       }
       // Clear the best deals local storage
       localStorage.setItem("bestIndividualDeals", JSON.stringify({}));
@@ -157,8 +164,10 @@ document.addEventListener("DOMContentLoaded", function () {
       qtyInput.value = quantity;
       qtyInput.id = "quantity";
       qtyInput.addEventListener("change", function () {
-        selectedItems[title].quantity = this.value;
-        localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+        if (Object.prototype.hasOwnProperty.call(selectedItems, title)) {
+          selectedItems[title].quantity = this.value;
+          localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
+        }
       });
       cellQty.appendChild(qtyInput);
 
@@ -191,30 +200,35 @@ document.addEventListener("DOMContentLoaded", function () {
       let bestOverallDeal = {};
       // iterate over the selected basket items in the local storage
       for (var itemName in selectedItems) {
-        console.log("Finding best deals for " + itemName);
-        let [count, deals] = removeUnavailableItems(
-          selectedItems[itemName].deals
-        );
-        selectedItems[itemName].deals = deals;
-        console.log(
-          "Removed " + count + " unavailable item(s) for " + itemName
-        );
-        let bestDeals = findBestIndividualDeals(
-          itemName,
-          selectedItems[itemName].deals,
-          selectedItems[itemName].quantity
-        );
-        console.log(
-          "Found " +
-            bestDeals.length +
-            " best individual deal(s) for " +
-            itemName +
-            " (q.ty: " +
-            selectedItems[itemName].quantity +
-            ")"
-        );
-        console.log("Best individual deals for " + itemName + ": ", bestDeals);
-        bestIndividualDeals[itemName] = bestDeals;
+        if (Object.prototype.hasOwnProperty.call(selectedItems, itemName)) {
+          console.log("Finding best deals for " + itemName);
+          let [count, deals] = removeUnavailableItems(
+            selectedItems[itemName].deals
+          );
+          selectedItems[itemName].deals = deals;
+          console.log(
+            "Removed " + count + " unavailable item(s) for " + itemName
+          );
+          let bestDeals = findBestIndividualDeals(
+            itemName,
+            selectedItems[itemName].deals,
+            selectedItems[itemName].quantity
+          );
+          console.log(
+            "Found " +
+              bestDeals.length +
+              " best individual deal(s) for " +
+              itemName +
+              " (q.ty: " +
+              selectedItems[itemName].quantity +
+              ")"
+          );
+          console.log(
+            "Best individual deals for " + itemName + ": ",
+            bestDeals
+          );
+          bestIndividualDeals[itemName] = bestDeals;
+        }
       }
       console.log("Best individual deals for all items: ", bestIndividualDeals);
       len = Object.keys(selectedItems).length;
@@ -265,7 +279,9 @@ function updateBestDealsMessage(
   if (individualDeals) {
     n = 0;
     for (var itemName in individualDeals) {
-      n += individualDeals[itemName].length;
+      if (Object.prototype.hasOwnProperty.call(individualDeals, itemName)) {
+        n += individualDeals[itemName].length;
+      }
     }
   }
 
