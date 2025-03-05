@@ -71,20 +71,27 @@ document.addEventListener("DOMContentLoaded", function () {
               quantity: quantity,
               deals: deals,
             };
-            // Use standard assignment with validation
-            selectedItems[title] = itemData;
-            console.log("Found ", deals.length, " deals for ", title);
-            localStorage.setItem(
-              "selectedItems",
-              JSON.stringify(selectedItems)
-            );
-            addItemToList(title, url, quantity);
-            // Clear the best deals local storage
-            localStorage.setItem("bestIndividualDeals", JSON.stringify({}));
-            localStorage.setItem("bestCumulativeDeals", JSON.stringify({}));
-            localStorage.setItem("bestOverallDeal", JSON.stringify({}));
-            // Clear the box-deals message
-            updateBestDealsMessage(null, null, null);
+            // Replace direct bracket notation with Object.prototype methods
+            if (title) {
+              Object.defineProperty(selectedItems, title, {
+                value: itemData,
+                enumerable: true,
+                writable: true,
+                configurable: true,
+              });
+              console.log("Found ", deals.length, " deals for ", title);
+              localStorage.setItem(
+                "selectedItems",
+                JSON.stringify(selectedItems)
+              );
+              addItemToList(title, url, quantity);
+              // Clear the best deals local storage
+              localStorage.setItem("bestIndividualDeals", JSON.stringify({}));
+              localStorage.setItem("bestCumulativeDeals", JSON.stringify({}));
+              localStorage.setItem("bestOverallDeal", JSON.stringify({}));
+              // Clear the box-deals message
+              updateBestDealsMessage(null, null, null);
+            }
           })
           .catch((error) => {
             console.error(
@@ -100,10 +107,11 @@ document.addEventListener("DOMContentLoaded", function () {
       selectedItems = {};
       localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
       let rows = itemsList.getElementsByTagName("tr");
-      for (let i = rows.length - 1; i > 0; i--) {
-        if (rows[i] && rows[i].parentNode) {
-          rows[i].parentNode.removeChild(rows[i]);
-        }
+      // Use a while loop with firstChild removal pattern instead of accessing by index
+      const tbody = itemsList.querySelector("tbody");
+      while (tbody.children.length > 1) {
+        // Keep the header row
+        tbody.removeChild(tbody.lastChild);
       }
       // Clear the best deals local storage
       localStorage.setItem("bestIndividualDeals", JSON.stringify({}));
