@@ -106,13 +106,14 @@ document.addEventListener("DOMContentLoaded", function () {
       // Clear the local storage and the list
       selectedItems = {};
       localStorage.setItem("selectedItems", JSON.stringify(selectedItems));
-      let rows = itemsList.getElementsByTagName("tr");
-      // Use a while loop with firstChild removal pattern instead of accessing by index
+
+      // Clear all rows from tbody
       const tbody = itemsList.querySelector("tbody");
-      while (tbody.children.length > 1) {
-        // Keep the header row
-        tbody.removeChild(tbody.lastChild);
+      // If the header is in thead, clear all tbody rows
+      while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
       }
+
       // Clear the best deals local storage
       localStorage.setItem("bestIndividualDeals", JSON.stringify({}));
       localStorage.setItem("bestCumulativeDeals", JSON.stringify({}));
