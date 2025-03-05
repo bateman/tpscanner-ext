@@ -275,25 +275,13 @@ function updateBestDealsMessage(
   const boxDeals = document.getElementById("box-deals");
 
   // Calculate individual deals count (n)
-  let n = -1;
-  if (individualDeals) {
-    n = 0;
-    for (var itemName in individualDeals) {
-      if (Object.prototype.hasOwnProperty.call(individualDeals, itemName)) {
-        n += individualDeals[itemName].length;
-      }
-    }
-  }
+  let n = getIndividualDealsCount(individualDeals);
 
   // Calculate cumulative deals count (m)
-  let m = cumulativeDeals ? cumulativeDeals.length : -1;
-  m = m ? m : 0;
+  let m = getCumulativeDealsCount(cumulativeDeals);
 
   // Get best total price (t)
-  let t = 0;
-  if (bestOverallDeal && bestOverallDeal.best_total_price) {
-    t = bestOverallDeal.best_total_price;
-  }
+  let t = getBestTotalPrice(bestOverallDeal);
 
   // Update message if data is available
   if (n !== -1 && m !== -1) {
@@ -301,6 +289,36 @@ function updateBestDealsMessage(
   } else {
     boxDeals.textContent = "";
   }
+}
+
+function getIndividualDealsCount(individualDeals) {
+  // Calculate individual deals count (n)
+  let n = -1;
+  if (individualDeals) {
+    n = 0;
+    for (const itemName in individualDeals) {
+      if (Object.prototype.hasOwnProperty.call(individualDeals, itemName)) {
+        n += individualDeals[itemName].length;
+      }
+    }
+  }
+  return n;
+}
+
+function getCumulativeDealsCount(cumulativeDeals) {
+  // Calculate cumulative deals count (m)
+  let m = cumulativeDeals ? cumulativeDeals.length : -1;
+  m = m ? m : 0;
+  return m;
+}
+
+function getBestTotalPrice(bestOverallDeal) {
+  // Get best total price (t)
+  let t = 0;
+  if (bestOverallDeal && bestOverallDeal.best_total_price) {
+    t = bestOverallDeal.best_total_price;
+  }
+  return t;
 }
 
 function displayDealsMessage(
