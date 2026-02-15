@@ -1,0 +1,13 @@
+{
+  "name": "tpscanner-ext",
+  "version": "0.6.3",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "devDependencies": {
+    "jsdom": "^28.1.0",
+    "vitest": "^4.0.18"
+  }
+}

@@ -13,6 +13,8 @@ SED_INPLACE := $(shell if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i
 AWK := $(shell command -v awk 2> /dev/null)
 GIT := $(shell command -v git 2> /dev/null)
 GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+NPM := $(shell command -v npm 2> /dev/null)
+NPM_VERSION := $(shell $(NPM) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
 XCRUN := $(shell command -v xcrun 2> /dev/null)
 XCRUN_VERSION := $(shell $(XCRUN) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
 XCODEBUILD := $(shell command -v xcodebuild 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
@@ -52,7 +54,7 @@ LOCALES := _locales
 # Files
 SRC := $(CSS) $(JS) $(IMAGES) $(HTML) $(MANIFEST) $(LOCALES)
 SRC_FILES := $(shell find $(SRC) -type f)
-JS_FILES := $(wildcard $(JS)/*.js)
+JS_FILES := $(shell find $(JS) -name '*.js' -not -name '*.min.js')
 
 # Stamp files
 RELEASE_TIMESTAMP := .release.stamp
@@ -89,6 +91,7 @@ info:  ## Show development environment info
 	@echo -e "  $(CYAN)Shell:$(RESET) $(SHELL) - $(shell $(SHELL) --version | head -n 1)"
 	@echo -e "  $(CYAN)Make:$(RESET) $(MAKE_VERSION)"
 	@echo -e "  $(CYAN)Git:$(RESET) $(GIT_VERSION)"
+	@echo -e "  $(CYAN)npm:$(RESET) $(NPM_VERSION)"
 	@echo -e "  $(CYAN)xcrun:$(RESET) $(XCRUN_VERSION)"
 	@echo -e "  $(CYAN)xcodebuild:$(RESET) $(XCODEBUILD)"
 	@echo -e "$(MAGENTA)Project:$(RESET)"
@@ -138,6 +141,23 @@ dep/edge: | dep/macos
 dep/safari: | dep/macos
 	@echo -e "$(CYAN)\nChecking if Safari is installed...$(RESET)"
 	@ls /Applications | grep -x "$(SAFARI_APP)" || echo -e "$(RED)Safari is not installed.$(RESET)"
+
+.PHONY: dep/npm
+dep/npm:
+	@if [ -z "$(NPM)" ]; then echo -e "$(RED)npm not found.$(RESET)" && exit 1; fi
+
+#-- Test targets
+
+.PHONY: test
+test: | dep/npm  ## Run unit tests
+	@echo -e "$(CYAN)\nRunning unit tests...$(RESET)"
+	@$(NPM) test
+	@echo -e "$(GREEN)Done.$(RESET)"
+
+.PHONY: test/watch
+test/watch: | dep/npm  ## Run unit tests in watch mode
+	@echo -e "$(CYAN)\nRunning unit tests in watch mode...$(RESET)"
+	@$(NPM) run test:watch
 
 #-- Build targets
 
@@ -232,8 +252,10 @@ define update_version
 	cat $(MANIFEST) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
 	mv $(MANIFEST_TMP) $(MANIFEST) ; \
 	cat $(MANIFEST_FIREFOX) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
-	mv $(MANIFEST_TMP) $(MANIFEST_FIREFOX)
-	$(GIT) add $(MANIFEST) $(MANIFEST_FIREFOX)
+	mv $(MANIFEST_TMP) $(MANIFEST_FIREFOX) ; \
+	cat package.json | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
+	mv $(MANIFEST_TMP) package.json
+	$(GIT) add $(MANIFEST) $(MANIFEST_FIREFOX) package.json
 	$(GIT) commit -m "Bump version to $(1)"
 endef
 
