@@ -145,8 +145,8 @@ function populateBestIndividualDealsTable(bII, bOD) {
           : browser.i18n.getMessage("dealsDisplayerNo")
       );
       let symbol = document.createElement("span");
-      symbol.innerHTML = deal.availability ? "\u2713" : "\u2717";
-      cellAvailability.innerHTML = "";
+      symbol.textContent = deal.availability ? "\u2713" : "\u2717";
+      cellAvailability.textContent = "";
       cellAvailability.appendChild(text);
       cellAvailability.appendChild(symbol);
       var cellSeller = row.insertCell(8);

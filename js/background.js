@@ -63,5 +63,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .then(() => sendResponse({ status: "ok" }))
         .catch((err) => sendResponse({ status: "error", error: err.message }));
       return true; // async response
+
+    default:
+      console.warn("Unknown message type:", message.type);
+      break;
   }
 });

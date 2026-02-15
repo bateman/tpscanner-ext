@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
         parsedUrl.pathname !== "/" &&
         parsedUrl.pathname !== ""
       ) {
-        var quantity = document.getElementById("quantity").value;
+        var quantity = parseInt(document.getElementById("quantity").value, 10) || 1;
         browser.runtime.sendMessage({
           type: "REQUEST_ADD_ITEM",
           title: title,
@@ -204,7 +204,7 @@ function addItemToList(title, url, quantity) {
       browser.runtime.sendMessage({
         type: "REQUEST_UPDATE_QUANTITY",
         title: title,
-        quantity: this.value,
+        quantity: parseInt(this.value, 10) || 1,
       });
     });
     cellQty.appendChild(qtyInput);

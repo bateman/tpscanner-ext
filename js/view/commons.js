@@ -10,7 +10,8 @@ export function applyI18n() {
 }
 
 export function formatCurrency(value) {
-  return value.toLocaleString("it-IT", {
+  const num = typeof value === "number" && isFinite(value) ? value : 0;
+  return num.toLocaleString("it-IT", {
     style: "currency",
     currency: "EUR",
   });
