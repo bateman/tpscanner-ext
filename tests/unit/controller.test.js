@@ -107,6 +107,23 @@ describe("Controller", () => {
         error: "Tab not found",
       });
     });
+
+    it("should add item with empty deals when scraping finds no listings", async () => {
+      const htmlContent = '<div id="listing"><ul></ul></div>';
+
+      globalThis.chrome.scripting.executeScript.mockResolvedValue([
+        { result: htmlContent },
+      ]);
+
+      await controller.handleAddItem("Empty Product", "https://example.com", 1, 123);
+
+      expect(mockModel.addItem).toHaveBeenCalledWith(
+        "Empty Product",
+        "https://example.com",
+        1,
+        []
+      );
+    });
   });
 
   describe("handleRemoveItem", () => {
@@ -158,6 +175,15 @@ describe("Controller", () => {
         bestCumulativeDeals: [],
         bestOverallDeal: { best_deal_type: "individual" },
       });
+    });
+
+    it("should propagate error when loadState rejects", async () => {
+      mockModel.loadState.mockRejectedValue(new Error("Storage error"));
+
+      await expect(controller.handleLoadBasket()).rejects.toThrow(
+        "Storage error"
+      );
+      expect(mockView.update).not.toHaveBeenCalled();
     });
   });
 });

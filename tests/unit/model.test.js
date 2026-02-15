@@ -146,6 +146,43 @@ describe("Model", () => {
       expect(callback).toHaveBeenCalledWith("BASKET_CLEARED", {});
     });
 
+    it("should overwrite existing item when adding duplicate name", () => {
+      const deals1 = [{ seller: "Shop A", price: 10 }];
+      const deals2 = [{ seller: "Shop B", price: 20 }];
+      model.addItem("Product A", "https://a.com", 1, deals1);
+      model.addItem("Product A", "https://b.com", 2, deals2);
+
+      const items = model.getSelectedItems();
+      expect(Object.keys(items)).toHaveLength(1);
+      expect(items["Product A"].url).toBe("https://b.com");
+      expect(items["Product A"].quantity).toBe(2);
+      expect(items["Product A"].deals).toEqual(deals2);
+    });
+
+    it("should handle removeItem on non-existent item without error", () => {
+      model.addItem("Product A", "https://a.com", 1, []);
+      const callback = vi.fn();
+      model.subscribe(callback);
+
+      model.removeItem("Non Existent");
+
+      expect(model.getSelectedItems()).toHaveProperty("Product A");
+      expect(callback).toHaveBeenCalledWith(
+        "ITEM_REMOVED",
+        expect.objectContaining({ title: "Non Existent" })
+      );
+    });
+
+    it("should handle updateItemQuantity on non-existent item (no-op)", () => {
+      model.addItem("Product A", "https://a.com", 1, []);
+      storageMock.set.mockClear();
+
+      model.updateItemQuantity("Non Existent", 5);
+
+      expect(model.getSelectedItems()["Product A"].quantity).toBe(1);
+      expect(storageMock.set).not.toHaveBeenCalled();
+    });
+
     it("should clear computed deals when basket changes", () => {
       model.bestIndividualDeals = { someKey: [] };
       model.bestCumulativeDeals = [{ someSeller: {} }];
@@ -229,6 +266,19 @@ describe("Model", () => {
       expect(count).toBe(0);
       expect(result).toHaveLength(3);
     });
+
+    it("should keep Amazon case-insensitive variants even if unavailable", () => {
+      const deals = [
+        { seller: "amazon.it", availability: false },
+        { seller: "Amazon.it", availability: false },
+        { seller: "AMAZON", availability: false },
+        { seller: "Shop A", availability: false },
+      ];
+      const [count, result] = Model.removeUnavailableItems(deals);
+      expect(count).toBe(1);
+      expect(result).toHaveLength(3);
+      expect(result.map((d) => d.seller)).toEqual(["amazon.it", "Amazon.it", "AMAZON"]);
+    });
   });
 
   // --- findBestIndividualDeals ---
@@ -306,6 +356,33 @@ describe("Model", () => {
         },
       ];
       const result = Model.findBestIndividualDeals("Product", deals, 1);
+      expect(result).toHaveLength(0);
+    });
+
+    it("should exclude deals with null free_delivery", () => {
+      const deals = [
+        {
+          seller: "Shop A",
+          price: 50,
+          delivery_price: 5,
+          free_delivery: null,
+          availability: true,
+        },
+        {
+          seller: "Shop B",
+          price: 30,
+          delivery_price: 3,
+          free_delivery: 25,
+          availability: true,
+        },
+      ];
+      const result = Model.findBestIndividualDeals("Product", deals, 1);
+      expect(result).toHaveLength(1);
+      expect(result[0].seller).toBe("Shop B");
+    });
+
+    it("should return empty array for empty deals", () => {
+      const result = Model.findBestIndividualDeals("Product", [], 1);
       expect(result).toHaveLength(0);
     });
   });
@@ -404,6 +481,134 @@ describe("Model", () => {
 
       const result = Model.findBestCumulativeDeals(selectedItems);
       expect(result).toHaveLength(0);
+    });
+
+    it("should multiply price by quantity for cumulative deals", () => {
+      const selectedItems = {
+        "Product A": {
+          quantity: 3,
+          deals: [
+            {
+              seller: "CommonShop",
+              seller_link: "/s1",
+              seller_reviews: 10,
+              seller_reviews_link: "/r1",
+              seller_rating: 4.5,
+              price: 20,
+              delivery_price: 5,
+              free_delivery: null,
+              availability: true,
+            },
+          ],
+        },
+        "Product B": {
+          quantity: 2,
+          deals: [
+            {
+              seller: "CommonShop",
+              seller_link: "/s1",
+              seller_reviews: 10,
+              seller_reviews_link: "/r1",
+              seller_rating: 4.5,
+              price: 10,
+              delivery_price: 5,
+              free_delivery: null,
+              availability: true,
+            },
+          ],
+        },
+      };
+
+      const result = Model.findBestCumulativeDeals(selectedItems);
+      expect(result).toHaveLength(1);
+      // 20*3 + 10*2 = 80
+      expect(result[0]["CommonShop"].cumulativePrice).toBe(80);
+    });
+
+    it("should apply free delivery threshold to cumulative price", () => {
+      const selectedItems = {
+        "Product A": {
+          quantity: 1,
+          deals: [
+            {
+              seller: "CommonShop",
+              seller_link: "/s1",
+              seller_reviews: 10,
+              seller_reviews_link: "/r1",
+              seller_rating: 4.5,
+              price: 30,
+              delivery_price: 5,
+              free_delivery: 50,
+              availability: true,
+            },
+          ],
+        },
+        "Product B": {
+          quantity: 1,
+          deals: [
+            {
+              seller: "CommonShop",
+              seller_link: "/s1",
+              seller_reviews: 10,
+              seller_reviews_link: "/r1",
+              seller_rating: 4.5,
+              price: 25,
+              delivery_price: 5,
+              free_delivery: 50,
+              availability: true,
+            },
+          ],
+        },
+      };
+
+      const result = Model.findBestCumulativeDeals(selectedItems);
+      expect(result).toHaveLength(1);
+      // cumulative 30+25=55 >= freeDelivery 50, so no delivery charge
+      expect(result[0]["CommonShop"].cumulativePrice).toBe(55);
+      expect(result[0]["CommonShop"].cumulativePricePlusDelivery).toBe(55);
+    });
+
+    it("should add delivery when below free delivery threshold", () => {
+      const selectedItems = {
+        "Product A": {
+          quantity: 1,
+          deals: [
+            {
+              seller: "CommonShop",
+              seller_link: "/s1",
+              seller_reviews: 10,
+              seller_reviews_link: "/r1",
+              seller_rating: 4.5,
+              price: 10,
+              delivery_price: 5,
+              free_delivery: 50,
+              availability: true,
+            },
+          ],
+        },
+        "Product B": {
+          quantity: 1,
+          deals: [
+            {
+              seller: "CommonShop",
+              seller_link: "/s1",
+              seller_reviews: 10,
+              seller_reviews_link: "/r1",
+              seller_rating: 4.5,
+              price: 10,
+              delivery_price: 5,
+              free_delivery: 50,
+              availability: true,
+            },
+          ],
+        },
+      };
+
+      const result = Model.findBestCumulativeDeals(selectedItems);
+      expect(result).toHaveLength(1);
+      // cumulative 10+10=20 < freeDelivery 50, so delivery is added
+      expect(result[0]["CommonShop"].cumulativePrice).toBe(20);
+      expect(result[0]["CommonShop"].cumulativePricePlusDelivery).toBe(25);
     });
 
     it("should sort cumulative deals by price ascending", () => {
@@ -529,6 +734,37 @@ describe("Model", () => {
       expect(result.best_deal_type).toBe("cumulative");
       expect(result.best_total_price).toBe(25);
     });
+
+    it("should prefer individual even when cumulative is cheaper if all items available", () => {
+      // When all individual items have deals, chooseCumulative requires
+      // notAllItemsAvailable to be true. Even if cumulative is cheaper,
+      // individual is chosen when all items have valid individual deals.
+      const bestIndividual = {
+        "Product A": [{ total_price_plus_delivery: 40 }],
+        "Product B": [{ total_price_plus_delivery: 35 }],
+      };
+      const bestCumulative = [
+        { CommonSeller: { cumulativePricePlusDelivery: 50 } },
+      ];
+
+      const result = Model.findBestOverallDeal(bestIndividual, bestCumulative);
+      expect(result.best_deal_type).toBe("individual");
+      expect(result.best_total_price).toBe(75);
+    });
+
+    it("should choose cumulative when not all items have individual deals and cumulative is cheaper", () => {
+      const bestIndividual = {
+        "Product A": [{ total_price_plus_delivery: 40 }],
+        "Product B": [], // no individual deals for this item
+      };
+      const bestCumulative = [
+        { CommonSeller: { cumulativePricePlusDelivery: 35 } },
+      ];
+
+      const result = Model.findBestOverallDeal(bestIndividual, bestCumulative);
+      expect(result.best_deal_type).toBe("cumulative");
+      expect(result.best_total_price).toBe(35);
+    });
   });
 
   // --- computeDeals integration ---
@@ -569,6 +805,63 @@ describe("Model", () => {
       model.subscribe(callback);
       model.computeDeals();
       expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("should compute cumulative deals for multiple items", () => {
+      const commonDeal = {
+        seller: "CommonShop",
+        price: 25,
+        delivery_price: 5,
+        free_delivery: 40,
+        availability: true,
+        seller_link: "/cs",
+        seller_reviews: 50,
+        seller_reviews_link: "/csr",
+        seller_rating: 4.0,
+      };
+      model.addItem("Product A", "https://a.com", 1, [{ ...commonDeal, price: 25 }]);
+      model.addItem("Product B", "https://b.com", 1, [{ ...commonDeal, price: 30 }]);
+
+      const callback = vi.fn();
+      model.subscribe(callback);
+      model.computeDeals();
+
+      expect(callback).toHaveBeenCalledWith(
+        "DEALS_COMPUTED",
+        expect.objectContaining({
+          bestCumulativeDeals: expect.any(Array),
+        })
+      );
+      const data = callback.mock.calls[0][1];
+      expect(data.bestCumulativeDeals.length).toBeGreaterThan(0);
+      expect(data.bestCumulativeDeals[0]).toHaveProperty("CommonShop");
+    });
+
+    it("should persist computed deals to storage", () => {
+      const deals = [
+        {
+          seller: "Shop A",
+          price: 50,
+          delivery_price: 5,
+          free_delivery: 40,
+          availability: true,
+          seller_link: "/s",
+          seller_reviews: 10,
+          seller_reviews_link: "/r",
+          seller_rating: 4.0,
+        },
+      ];
+      model.addItem("Product A", "https://a.com", 1, deals);
+      storageMock.set.mockClear();
+
+      model.computeDeals();
+
+      expect(storageMock.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bestIndividualDeals: expect.any(Object),
+          bestOverallDeal: expect.any(Object),
+        })
+      );
     });
   });
 });

@@ -91,6 +91,65 @@ describe("scraping", () => {
       expect(result.price).toBe(29.99);
       expect(result.delivery_price).toBe(12.5);
     });
+
+    it("should parse different rating values", () => {
+      const ratings = [
+        ["merchant_reviews rating_image rate10", 1.0],
+        ["merchant_reviews rating_image rate25", 2.5],
+        ["merchant_reviews rating_image rate50", 5.0],
+      ];
+
+      for (const [ratingClass, expected] of ratings) {
+        const result = convertDataTypes(
+          "Shop",
+          "/merchants/shop",
+          "10 recensioni",
+          "/merchants/shop/reviews",
+          ratingClass,
+          "10,00 \u20AC",
+          null,
+          null,
+          "available",
+          "/go/offer"
+        );
+        expect(result.seller_rating).toBe(expected);
+      }
+    });
+
+    it("should handle zero reviews", () => {
+      const result = convertDataTypes(
+        "NewShop",
+        "/merchants/newshop",
+        "0 recensioni",
+        "/merchants/newshop/reviews",
+        null,
+        "10,00 \u20AC",
+        null,
+        null,
+        "available",
+        "/go/offer"
+      );
+
+      expect(result.seller_reviews).toBe(0);
+    });
+
+    it("should handle delivery price with no numeric value (Gratis)", () => {
+      const result = convertDataTypes(
+        "Shop",
+        "/merchants/shop",
+        "10 recensioni",
+        "/merchants/shop/reviews",
+        null,
+        "10,00 \u20AC",
+        "Gratis",
+        null,
+        "available",
+        "/go/offer"
+      );
+
+      // "Gratis" does not match the number pattern, so defaults to 0.0
+      expect(result.delivery_price).toBe(0.0);
+    });
   });
 
   describe("extractPricesPlusShipping", () => {
@@ -195,6 +254,30 @@ describe("scraping", () => {
     it("should return empty array for invalid HTML input", () => {
       const result = extractPricesPlusShipping("");
       expect(result).toHaveLength(0);
+    });
+
+    it("should extract listing with missing optional fields", () => {
+      // No delivery price, no free delivery, no rating, no availability
+      const html = buildListingHtml([
+        {
+          merchant: "BasicShop",
+          merchantLink: "/merchants/basic",
+          reviews: "5 recensioni",
+          reviewsLink: "/merchants/basic/reviews",
+          price: "15,00 \u20AC",
+          offerLink: "/go/basic",
+        },
+      ]);
+
+      const result = extractPricesPlusShipping(html);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].seller).toBe("BasicShop");
+      expect(result[0].price).toBe(15.0);
+      expect(result[0].delivery_price).toBe(0.0);
+      expect(result[0].free_delivery).toBeNull();
+      expect(result[0].seller_rating).toBeNull();
+      expect(result[0].availability).toBe(false);
     });
   });
 
