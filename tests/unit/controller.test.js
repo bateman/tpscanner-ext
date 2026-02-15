@@ -7,6 +7,12 @@ globalThis.chrome = {
   scripting: {
     executeScript: vi.fn(),
   },
+  storage: {
+    local: {
+      get: vi.fn().mockResolvedValue({}),
+      set: vi.fn().mockResolvedValue(undefined),
+    },
+  },
 };
 globalThis.browser = undefined;
 
@@ -23,7 +29,7 @@ describe("Controller", () => {
       updateItemQuantity: vi.fn(),
       clearBasket: vi.fn(),
       computeDeals: vi.fn(),
-      loadState: vi.fn(),
+      loadState: vi.fn().mockResolvedValue(undefined),
       getSelectedItems: vi.fn().mockReturnValue({}),
       getBestIndividualDeals: vi.fn().mockReturnValue({}),
       getBestCumulativeDeals: vi.fn().mockReturnValue({}),
@@ -135,7 +141,7 @@ describe("Controller", () => {
   });
 
   describe("handleLoadBasket", () => {
-    it("should load state and update view with current data", () => {
+    it("should await loadState and update view with current data", async () => {
       mockModel.getSelectedItems.mockReturnValue({ "Product A": {} });
       mockModel.getBestIndividualDeals.mockReturnValue({ "Product A": [] });
       mockModel.getBestCumulativeDeals.mockReturnValue([]);
@@ -143,7 +149,7 @@ describe("Controller", () => {
         best_deal_type: "individual",
       });
 
-      controller.handleLoadBasket();
+      await controller.handleLoadBasket();
 
       expect(mockModel.loadState).toHaveBeenCalled();
       expect(mockView.update).toHaveBeenCalledWith("BASKET_LOADED", {

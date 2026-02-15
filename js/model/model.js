@@ -1,3 +1,7 @@
+function getBrowser() {
+  return self.browser || self.chrome;
+}
+
 export class Model {
   constructor() {
     this.subscribers = [];
@@ -5,7 +9,12 @@ export class Model {
     this.bestIndividualDeals = {};
     this.bestCumulativeDeals = {};
     this.bestOverallDeal = {};
-    this.loadState();
+  }
+
+  static async create() {
+    const model = new Model();
+    await model.loadState();
+    return model;
   }
 
   // --- Observer Pattern ---
@@ -22,34 +31,26 @@ export class Model {
 
   // --- State Persistence ---
 
-  loadState() {
-    this.selectedItems =
-      JSON.parse(localStorage.getItem("selectedItems")) || {};
-    this.bestIndividualDeals =
-      JSON.parse(localStorage.getItem("bestIndividualDeals")) || {};
-    this.bestCumulativeDeals =
-      JSON.parse(localStorage.getItem("bestCumulativeDeals")) || {};
-    this.bestOverallDeal =
-      JSON.parse(localStorage.getItem("bestOverallDeal")) || {};
+  async loadState() {
+    const data = await getBrowser().storage.local.get([
+      "selectedItems",
+      "bestIndividualDeals",
+      "bestCumulativeDeals",
+      "bestOverallDeal",
+    ]);
+    this.selectedItems = data.selectedItems || {};
+    this.bestIndividualDeals = data.bestIndividualDeals || {};
+    this.bestCumulativeDeals = data.bestCumulativeDeals || {};
+    this.bestOverallDeal = data.bestOverallDeal || {};
   }
 
   saveState() {
-    localStorage.setItem(
-      "selectedItems",
-      JSON.stringify(this.selectedItems)
-    );
-    localStorage.setItem(
-      "bestIndividualDeals",
-      JSON.stringify(this.bestIndividualDeals)
-    );
-    localStorage.setItem(
-      "bestCumulativeDeals",
-      JSON.stringify(this.bestCumulativeDeals)
-    );
-    localStorage.setItem(
-      "bestOverallDeal",
-      JSON.stringify(this.bestOverallDeal)
-    );
+    getBrowser().storage.local.set({
+      selectedItems: this.selectedItems,
+      bestIndividualDeals: this.bestIndividualDeals,
+      bestCumulativeDeals: this.bestCumulativeDeals,
+      bestOverallDeal: this.bestOverallDeal,
+    });
   }
 
   // --- State Methods ---

@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var addButton = document.getElementById("add");
   var clearButton = document.getElementById("clear");
-  var itemsList = document.getElementById("items");
 
   // Request basket state from background
   browser.runtime.sendMessage({ type: "REQUEST_LOAD_BASKET" });

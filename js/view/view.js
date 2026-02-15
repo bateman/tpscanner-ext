@@ -1,8 +1,10 @@
-const browser = self.browser || self.chrome;
+function getBrowser() {
+  return self.browser || self.chrome;
+}
 
 export class View {
   update(action, data) {
-    browser.runtime
+    getBrowser().runtime
       .sendMessage({
         type: "RESPONSE_" + action,
         data: data,

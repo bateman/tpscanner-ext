@@ -74,10 +74,15 @@ function calculateColumnWidths(ws) {
   return cols;
 }
 
-function loadBestDeals() {
-  var bII = JSON.parse(localStorage.getItem("bestIndividualDeals")) || {};
-  var bCD = JSON.parse(localStorage.getItem("bestCumulativeDeals")) || {};
-  var bOD = JSON.parse(localStorage.getItem("bestOverallDeal")) || {};
+async function loadBestDeals() {
+  const data = await browser.storage.local.get([
+    "bestIndividualDeals",
+    "bestCumulativeDeals",
+    "bestOverallDeal",
+  ]);
+  var bII = data.bestIndividualDeals || {};
+  var bCD = data.bestCumulativeDeals || {};
+  var bOD = data.bestOverallDeal || {};
 
   if (Object.keys(bII).length > 0 || Object.keys(bCD).length > 0) {
     populateBestIndividualDealsTable(bII, bOD);

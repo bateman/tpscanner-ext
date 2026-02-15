@@ -1,30 +1,37 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Model } from "../../js/model/model.js";
 
-// Mock localStorage
-const localStorageMock = (() => {
-  let store = {};
-  return {
-    getItem: vi.fn((key) => store[key] || null),
-    setItem: vi.fn((key, value) => {
-      store[key] = value;
-    }),
-    clear: vi.fn(() => {
-      store = {};
-    }),
-  };
-})();
-Object.defineProperty(globalThis, "localStorage", {
-  value: localStorageMock,
-});
+// Mock chrome.storage.local
+let store = {};
+const storageMock = {
+  get: vi.fn((keys) => {
+    const result = {};
+    for (const key of keys) {
+      if (store[key] !== undefined) {
+        result[key] = store[key];
+      }
+    }
+    return Promise.resolve(result);
+  }),
+  set: vi.fn((items) => {
+    Object.assign(store, items);
+    return Promise.resolve();
+  }),
+};
+
+globalThis.self = globalThis;
+globalThis.chrome = {
+  storage: { local: storageMock },
+};
+globalThis.browser = undefined;
 
 describe("Model", () => {
   let model;
 
   beforeEach(() => {
-    localStorageMock.clear();
-    localStorageMock.getItem.mockClear();
-    localStorageMock.setItem.mockClear();
+    store = {};
+    storageMock.get.mockClear();
+    storageMock.set.mockClear();
     model = new Model();
   });
 
@@ -46,6 +53,23 @@ describe("Model", () => {
       model.notify("ACTION", {});
       expect(callback1).toHaveBeenCalledOnce();
       expect(callback2).toHaveBeenCalledOnce();
+    });
+  });
+
+  // --- Factory Method ---
+
+  describe("Model.create", () => {
+    it("should create model and load persisted state", async () => {
+      store = {
+        selectedItems: { "Saved Product": { url: "https://x.com", quantity: 2, deals: [] } },
+        bestIndividualDeals: {},
+        bestCumulativeDeals: {},
+        bestOverallDeal: {},
+      };
+
+      const m = await Model.create();
+      expect(m.getSelectedItems()).toHaveProperty("Saved Product");
+      expect(storageMock.get).toHaveBeenCalled();
     });
   });
 
@@ -133,14 +157,27 @@ describe("Model", () => {
       expect(model.getBestOverallDeal()).toEqual({});
     });
 
-    it("should persist state to localStorage", () => {
+    it("should persist state to chrome.storage.local", () => {
       const deals = [{ seller: "Amazon", price: 10 }];
       model.addItem("Product A", "https://a.com", 1, deals);
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "selectedItems",
-        expect.any(String)
+      expect(storageMock.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selectedItems: expect.any(Object),
+        })
       );
+    });
+
+    it("should load state from chrome.storage.local", async () => {
+      store = {
+        selectedItems: { "Loaded Product": { url: "https://l.com", quantity: 1, deals: [] } },
+        bestOverallDeal: { best_deal_type: "individual", best_total_price: 42 },
+      };
+
+      await model.loadState();
+
+      expect(model.getSelectedItems()).toHaveProperty("Loaded Product");
+      expect(model.getBestOverallDeal().best_total_price).toBe(42);
     });
   });
 

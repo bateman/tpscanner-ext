@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   extractPricesPlusShipping,
+  extractBestPriceShippingIncluded,
   convertDataTypes,
 } from "../../js/utils/scraping.js";
 
@@ -194,6 +195,36 @@ describe("scraping", () => {
     it("should return empty array for invalid HTML input", () => {
       const result = extractPricesPlusShipping("");
       expect(result).toHaveLength(0);
+    });
+  });
+
+  describe("extractBestPriceShippingIncluded", () => {
+    it("should have arity bug: calls convertDataTypes with 8 args instead of 10", () => {
+      // This test documents a pre-existing bug in extractBestPriceShippingIncluded.
+      // The function calls convertDataTypes with 8 positional args (missing
+      // merchantLink and merchantReviewsLink), but convertDataTypes expects 10.
+      // This causes the arguments to shift: merchantReviews is treated as
+      // merchantLink, merchantRating as merchantReviews, etc.
+      const html = `
+        <div class="name_and_rating"><h1><strong>Test Product</strong></h1></div>
+        <div id="listing"><ul><li>
+          <div class="item_info"><div class="item_merchant">
+            <div class="merchant_name_and_logo"><a href="/seller"><span>TestShop</span></a></div>
+            <div class="wrap_merchant_reviews">
+              <a class="merchant_reviews" href="/reviews">100 recensioni</a>
+            </div>
+          </div></div>
+          <div class="item_price total_price_sorting">
+            <span class="item_basic_price">29,99 \u20AC</span>
+            <span class="item_availability"><span class="available"></span></span>
+          </div>
+          <div class="item_actions"><a href="/go/offer1"></a></div>
+        </li></ul></div>`;
+
+      // The function will error because merchantReviews ("100 recensioni")
+      // is passed as merchantLink, and then merchantRating (null) is passed
+      // as merchantReviews. When it tries to call .match() on null, it throws.
+      expect(() => extractBestPriceShippingIncluded(html)).toThrow();
     });
   });
 });

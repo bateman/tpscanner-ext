@@ -50,8 +50,8 @@ export class Controller {
     this.model.computeDeals();
   }
 
-  handleLoadBasket() {
-    this.model.loadState();
+  async handleLoadBasket() {
+    await this.model.loadState();
     this.view.update("BASKET_LOADED", {
       selectedItems: this.model.getSelectedItems(),
       bestIndividualDeals: this.model.getBestIndividualDeals(),

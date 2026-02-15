@@ -2,13 +2,21 @@ import { Model } from "./model/model.js";
 import { View } from "./view/view.js";
 import { Controller } from "./controller/controller.js";
 
-const model = new Model();
-const view = new View();
-const controller = new Controller(model, view);
-
 const browser = self.browser || self.chrome;
 
+let controller;
+
+Model.create().then((model) => {
+  const view = new View();
+  controller = new Controller(model, view);
+});
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!controller) {
+    sendResponse({ status: "error", error: "Still initializing" });
+    return true;
+  }
+
   switch (message.type) {
     case "REQUEST_ADD_ITEM":
       controller
@@ -43,8 +51,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
 
     case "REQUEST_LOAD_BASKET":
-      controller.handleLoadBasket();
-      sendResponse({ status: "ok" });
-      break;
+      controller
+        .handleLoadBasket()
+        .then(() => sendResponse({ status: "ok" }))
+        .catch((err) => sendResponse({ status: "error", error: err.message }));
+      return true; // async response
   }
 });
