@@ -199,7 +199,7 @@ function addItemToList(title, url, quantity) {
     var qtyInput = document.createElement("input");
     qtyInput.type = "number";
     qtyInput.value = quantity;
-    qtyInput.id = "quantity";
+    qtyInput.min = "1";
     qtyInput.addEventListener("change", function () {
       browser.runtime.sendMessage({
         type: "REQUEST_UPDATE_QUANTITY",

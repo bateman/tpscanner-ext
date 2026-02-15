@@ -6,10 +6,17 @@ const browser = self.browser || self.chrome;
 
 let controller;
 
-Model.create().then((model) => {
-  const view = new View();
-  controller = new Controller(model, view);
-});
+Model.create()
+  .then((model) => {
+    const view = new View();
+    controller = new Controller(model, view);
+  })
+  .catch((err) => {
+    console.error("Failed to initialize model, using empty state:", err);
+    const model = new Model();
+    const view = new View();
+    controller = new Controller(model, view);
+  });
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!controller) {
