@@ -17,7 +17,7 @@ describe("commons", () => {
 
     it("should format a large number correctly", () => {
       const result = formatCurrency(1234.56);
-      // jsdom may or may not apply thousands grouping
+      // jsdom does not apply ICU locale thousands grouping
       expect(result).toContain("1234,56");
       expect(result).toContain("€");
     });
