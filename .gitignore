@@ -3,3 +3,4 @@
 *.tmp
 build/
 store/auth/
+node_modules/
