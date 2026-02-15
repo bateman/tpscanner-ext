@@ -132,6 +132,28 @@ parent.appendChild(el);
 - `host_permissions` restricted to `trovaprezzi.it` only
 - `executeScript` limited to returning `document.body.innerHTML` for scraping
 - Message handlers include `default` case for unrecognized types
+- **Avoid generic object injection sinks**: Never use bracket notation (`obj[key]`) with dynamic keys on plain objects without guarding access. Use `Object.hasOwn(obj, key)` before reading/writing, or use `Map`/`Set` instead of plain objects for dictionaries with dynamic keys. When iterating, prefer `Object.entries()`, `Object.keys()`, or `Object.values()` over `for...in` with bracket access.
+
+```javascript
+// BAD — triggers Generic Object Injection Sink
+const value = obj[userKey];
+obj[dynamicKey] = data;
+
+// GOOD — guard with hasOwn
+if (Object.hasOwn(obj, userKey)) {
+  const value = obj[userKey];
+}
+
+// GOOD — use Map for dynamic key dictionaries
+const map = new Map();
+map.set(dynamicKey, data);
+const value = map.get(dynamicKey);
+
+// GOOD — destructure during iteration instead of bracket access
+for (const [key, value] of Object.entries(obj)) {
+  process(key, value);
+}
+```
 
 **Quality:**
 - Use `const`/`let` instead of `var`
@@ -139,6 +161,7 @@ parent.appendChild(el);
 - Handle promise rejections with `.catch()` or try/catch
 - `Model.create()` has `.catch()` fallback to empty state on storage failure
 - Async message handlers return `true` to keep `sendResponse` channel open
+- **Keep functions under 50 lines of code.** Extract helper functions to stay within this limit. This applies to both production code and test code (including individual `it()` blocks). When a function or test grows beyond 50 lines, refactor by extracting setup logic, helper builders, or sub-functions.
 
 ## Dependencies
 
