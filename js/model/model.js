@@ -212,19 +212,14 @@ export class Model {
   static findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
     let bestIndividualDeals = [];
     for (let deal of itemDeals) {
-      if (
-        deal.free_delivery &&
-        deal.price * itemQuantity >= deal.free_delivery
-      ) {
-        deal.name = itemName;
-        deal.total_price = deal.price * itemQuantity;
-        deal.total_price_plus_delivery =
-          deal.free_delivery && deal.total_price >= deal.free_delivery
-            ? deal.total_price
-            : deal.total_price + deal.delivery_price;
-        deal.quantity = itemQuantity;
-        bestIndividualDeals.push(deal);
-      }
+      deal.name = itemName;
+      deal.total_price = deal.price * itemQuantity;
+      deal.total_price_plus_delivery =
+        deal.free_delivery && deal.total_price >= deal.free_delivery
+          ? deal.total_price
+          : deal.total_price + deal.delivery_price;
+      deal.quantity = itemQuantity;
+      bestIndividualDeals.push(deal);
     }
     bestIndividualDeals.sort(
       (a, b) => a.total_price_plus_delivery - b.total_price_plus_delivery
@@ -373,46 +368,25 @@ export class Model {
   }
 
   static findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
-    let notAllItemsAvailable = false;
     let totalIndividualCost = 0;
     if (bestIndividualDeals) {
-      let n = 0;
-      for (var itemName in bestIndividualDeals) {
+      for (const itemName in bestIndividualDeals) {
         if (
-          typeof itemName === "string" &&
           Object.prototype.hasOwnProperty.call(
             bestIndividualDeals,
             itemName
           )
         ) {
           const itemDeals = bestIndividualDeals[itemName];
-          n +=
-            itemDeals && Array.isArray(itemDeals) ? itemDeals.length : 0;
-        }
-      }
-      if (n > 0) {
-        for (let itemName in bestIndividualDeals) {
+          const bestDeal =
+            Array.isArray(itemDeals) && itemDeals.length > 0
+              ? itemDeals[0]
+              : null;
           if (
-            Object.prototype.hasOwnProperty.call(
-              bestIndividualDeals,
-              itemName
-            )
+            bestDeal &&
+            typeof bestDeal.total_price_plus_delivery === "number"
           ) {
-            const itemDeals = bestIndividualDeals[itemName];
-            let bestDeal =
-              Array.isArray(itemDeals) && itemDeals.length > 0
-                ? itemDeals[0]
-                : null;
-            if (
-              bestDeal &&
-              typeof bestDeal.total_price_plus_delivery === "number"
-            ) {
-              totalIndividualCost += bestDeal.total_price_plus_delivery;
-            } else {
-              notAllItemsAvailable = true;
-            }
-          } else {
-            notAllItemsAvailable = true;
+            totalIndividualCost += bestDeal.total_price_plus_delivery;
           }
         }
       }
@@ -431,9 +405,7 @@ export class Model {
 
     const chooseCumulative =
       totalIndividualCost === 0 ||
-      (notAllItemsAvailable &&
-        bestCumulativeCost > 0 &&
-        bestCumulativeCost < totalIndividualCost);
+      (bestCumulativeCost > 0 && bestCumulativeCost < totalIndividualCost);
 
     return {
       best_deal_type: chooseCumulative ? "cumulative" : "individual",
