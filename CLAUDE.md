@@ -8,7 +8,15 @@ TPscanner is a cross-browser extension for comparing prices on [trovaprezzi.it](
 
 ## Architecture
 
-**Pattern**: MVC with message-passing between extension components.
+**Pattern**: MVC adapted to the browser extension architecture. Components cannot call each other directly across contexts (popup vs service worker), so communication happens via `runtime.sendMessage` / `runtime.onMessage`.
+
+**MVC role mapping**:
+- **Model** (`model.js`): Runs in the service worker. Owns all state (basket, deals), persists to `chrome.storage.local`, and notifies observers on changes.
+- **View**: Split across two contexts:
+  - `popup.js` / `deals.js` — Run in the popup context. Render the UI and send user actions as messages to the service worker.
+  - `view.js` — Runs in the service worker. Acts as a bridge: receives model notifications and forwards them to the popup via `runtime.sendMessage`.
+- **Controller** (`controller.js`): Runs in the service worker. Receives user actions (routed by `background.js`), orchestrates model updates and page scraping via `executeScript`.
+- **Router** (`background.js`): Service worker entry point. Listens for messages from the popup and dispatches them to the appropriate controller method.
 
 **Message Flow**:
 ```
@@ -28,7 +36,7 @@ popup.js ← view.js ← controller.js ← model.js (observer pattern)
 | `js/view/deals.js` | Deals display page, table rendering, XLSX export |
 | `js/view/view.js` | Background-side bridge, forwards model notifications to popup |
 | `js/view/commons.js` | Shared utilities (browser compat, i18n, currency formatting) |
-| `js/utils/scraping.js` | HTML parsing functions for trovaprezzi.it listings |
+| `js/utils/scraping.js` | Data conversion for trovaprezzi.it listings (`convertDataTypes`) |
 
 **Message Types** (handled in background.js):
 - `REQUEST_ADD_ITEM` - Scrape page and add product to basket (async)
@@ -58,6 +66,9 @@ The build process (Makefile) swaps manifests automatically. Both must be kept in
 **Browser API resolution**:
 - Service worker context: `self.browser || self.chrome` (via `getBrowser()` for deferred resolution)
 - Page context (popup, deals): `window.msBrowser || window.browser || window.chrome` (via `commons.js`)
+
+**Service worker limitations (MV3)**:
+- DOM APIs (`DOMParser`, `document`, `window`) are **not available** in the service worker. All DOM querying must happen in the page context via `executeScript`, returning structured data to the service worker. Never parse HTML in `background.js` or `controller.js` — use `executeScript` with a self-contained function to query the DOM in-page, then process the raw data in the service worker (see `scrapeListingItems` in `controller.js`).
 
 ## Deal-Finding Algorithms
 
@@ -130,7 +141,7 @@ parent.appendChild(el);
 - Parse numeric inputs at message boundaries (`parseInt(value, 10) || default`)
 - Guard formatting functions against non-number values
 - `host_permissions` restricted to `trovaprezzi.it` only
-- `executeScript` limited to returning `document.body.innerHTML` for scraping
+- `executeScript` runs a self-contained function in the page context to query the DOM and return structured data (never raw HTML)
 - Message handlers include `default` case for unrecognized types
 - **Avoid generic object injection sinks**: Never use bracket notation (`obj[key]`) with dynamic keys on plain objects without guarding access. Use `Object.hasOwn(obj, key)` before reading/writing, or use `Map`/`Set` instead of plain objects for dictionaries with dynamic keys. When iterating, prefer `Object.entries()`, `Object.keys()`, or `Object.values()` over `for...in` with bracket access.
 
