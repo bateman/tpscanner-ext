@@ -145,6 +145,7 @@ dep/safari: | dep/macos
 .PHONY: dep/npm
 dep/npm:
 	@if [ -z "$(NPM)" ]; then echo -e "$(RED)npm not found.$(RESET)" && exit 1; fi
+	@if [ ! -d node_modules ]; then echo -e "$(CYAN)Installing npm dependencies...$(RESET)" && $(NPM) install; fi
 
 #-- Test targets
 
