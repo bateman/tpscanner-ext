@@ -30,7 +30,7 @@ MANIFEST := manifest.json
 MANIFEST_FIREFOX := manifest.firefox.json
 MANIFEST_TMP := manifest.json.tmp
 APP_NAME := $(shell jq -r .name $(MANIFEST) | tr -d '[:space:]' | tr -d '"')
-APP_DESCRIPTION := $(shell jq -r .description $(MANIFEST))
+APP_DESCRIPTION := $(shell desc=$$(jq -r .description $(MANIFEST)); if echo "$$desc" | grep -q '^__MSG_.*__$$'; then key=$$(echo "$$desc" | sed 's/^__MSG_//;s/__$$//'); jq -r ".$$key.message" _locales/en/messages.json; else echo "$$desc"; fi)
 APP_VERSION := $(shell jq -r .version $(MANIFEST))
 APP_LICENSE := $(shell head -n 1 LICENSE)
 PROJECT_REPO ?= $(shell url=$$($(GIT) config --get remote.origin.url); echo $${url%.git})
