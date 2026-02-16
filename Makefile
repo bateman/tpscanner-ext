@@ -255,8 +255,8 @@ define update_version
 	cat $(MANIFEST_FIREFOX) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
 	mv $(MANIFEST_TMP) $(MANIFEST_FIREFOX) ; \
 	cat package.json | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
-	mv $(MANIFEST_TMP) package.json
-	$(GIT) add $(MANIFEST) $(MANIFEST_FIREFOX) package.json
+	mv $(MANIFEST_TMP) package.json ; \
+	$(GIT) add $(MANIFEST) $(MANIFEST_FIREFOX) package.json ; \
 	$(GIT) commit -m "Bump version to $(1)"
 endef
 
