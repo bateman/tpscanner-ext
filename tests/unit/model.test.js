@@ -284,7 +284,7 @@ describe("Model", () => {
   // --- findBestIndividualDeals ---
 
   describe("findBestIndividualDeals", () => {
-    it("should find deals meeting free delivery threshold", () => {
+    it("should include all deals and apply free delivery threshold correctly", () => {
       const deals = [
         {
           seller: "Shop A",
@@ -302,10 +302,15 @@ describe("Model", () => {
         },
       ];
       const result = Model.findBestIndividualDeals("Product", deals, 1);
-      expect(result).toHaveLength(1);
-      expect(result[0].seller).toBe("Shop A");
-      expect(result[0].total_price).toBe(50);
-      expect(result[0].total_price_plus_delivery).toBe(50); // free delivery
+      expect(result).toHaveLength(2);
+      // Shop B: 30 < 40 threshold, delivery added → 35
+      expect(result[0].seller).toBe("Shop B");
+      expect(result[0].total_price).toBe(30);
+      expect(result[0].total_price_plus_delivery).toBe(35);
+      // Shop A: 50 >= 40 threshold, free delivery → 50
+      expect(result[1].seller).toBe("Shop A");
+      expect(result[1].total_price).toBe(50);
+      expect(result[1].total_price_plus_delivery).toBe(50);
     });
 
     it("should sort by total price plus delivery ascending", () => {
@@ -345,7 +350,7 @@ describe("Model", () => {
       expect(result[0].quantity).toBe(2);
     });
 
-    it("should return empty array when no deals meet threshold", () => {
+    it("should include deals below free delivery threshold with delivery added", () => {
       const deals = [
         {
           seller: "Shop A",
@@ -356,10 +361,12 @@ describe("Model", () => {
         },
       ];
       const result = Model.findBestIndividualDeals("Product", deals, 1);
-      expect(result).toHaveLength(0);
+      expect(result).toHaveLength(1);
+      expect(result[0].total_price).toBe(10);
+      expect(result[0].total_price_plus_delivery).toBe(15); // 10 + 5 delivery
     });
 
-    it("should exclude deals with null free_delivery", () => {
+    it("should include deals with null free_delivery with delivery added", () => {
       const deals = [
         {
           seller: "Shop A",
@@ -377,8 +384,13 @@ describe("Model", () => {
         },
       ];
       const result = Model.findBestIndividualDeals("Product", deals, 1);
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
+      // Shop B: 30 >= 25, free delivery → 30
       expect(result[0].seller).toBe("Shop B");
+      expect(result[0].total_price_plus_delivery).toBe(30);
+      // Shop A: null free_delivery, delivery added → 55
+      expect(result[1].seller).toBe("Shop A");
+      expect(result[1].total_price_plus_delivery).toBe(55);
     });
 
     it("should return empty array for empty deals", () => {
@@ -735,10 +747,21 @@ describe("Model", () => {
       expect(result.best_total_price).toBe(25);
     });
 
-    it("should prefer individual even when cumulative is cheaper if all items available", () => {
-      // When all individual items have deals, chooseCumulative requires
-      // notAllItemsAvailable to be true. Even if cumulative is cheaper,
-      // individual is chosen when all items have valid individual deals.
+    it("should prefer individual when individual is cheaper than cumulative", () => {
+      const bestIndividual = {
+        "Product A": [{ total_price_plus_delivery: 40 }],
+        "Product B": [{ total_price_plus_delivery: 35 }],
+      };
+      const bestCumulative = [
+        { CommonSeller: { cumulativePricePlusDelivery: 80 } },
+      ];
+
+      const result = Model.findBestOverallDeal(bestIndividual, bestCumulative);
+      expect(result.best_deal_type).toBe("individual");
+      expect(result.best_total_price).toBe(75);
+    });
+
+    it("should choose cumulative when cumulative is cheaper than individual", () => {
       const bestIndividual = {
         "Product A": [{ total_price_plus_delivery: 40 }],
         "Product B": [{ total_price_plus_delivery: 35 }],
@@ -748,22 +771,8 @@ describe("Model", () => {
       ];
 
       const result = Model.findBestOverallDeal(bestIndividual, bestCumulative);
-      expect(result.best_deal_type).toBe("individual");
-      expect(result.best_total_price).toBe(75);
-    });
-
-    it("should choose cumulative when not all items have individual deals and cumulative is cheaper", () => {
-      const bestIndividual = {
-        "Product A": [{ total_price_plus_delivery: 40 }],
-        "Product B": [], // no individual deals for this item
-      };
-      const bestCumulative = [
-        { CommonSeller: { cumulativePricePlusDelivery: 35 } },
-      ];
-
-      const result = Model.findBestOverallDeal(bestIndividual, bestCumulative);
       expect(result.best_deal_type).toBe("cumulative");
-      expect(result.best_total_price).toBe(35);
+      expect(result.best_total_price).toBe(50);
     });
   });
 
@@ -835,6 +844,73 @@ describe("Model", () => {
       const data = callback.mock.calls[0][1];
       expect(data.bestCumulativeDeals.length).toBeGreaterThan(0);
       expect(data.bestCumulativeDeals[0]).toHaveProperty("CommonShop");
+    });
+
+    it("should find individual deals when free_delivery is null", () => {
+      const deals = [
+        {
+          seller: "Shop A",
+          price: 25,
+          delivery_price: 5,
+          free_delivery: null,
+          availability: true,
+          seller_link: "/s",
+          seller_reviews: 10,
+          seller_reviews_link: "/r",
+          seller_rating: 4.0,
+        },
+      ];
+      model.addItem("Product A", "https://a.com", 1, deals);
+
+      const callback = vi.fn();
+      model.subscribe(callback);
+      model.computeDeals();
+
+      const data = callback.mock.calls[0][1];
+      expect(data.bestIndividualDeals["Product A"]).toHaveLength(1);
+      expect(data.bestIndividualDeals["Product A"][0].total_price).toBe(25);
+      expect(
+        data.bestIndividualDeals["Product A"][0].total_price_plus_delivery
+      ).toBe(30);
+    });
+
+    it("should find individual deals for all items with multiple products", () => {
+      const dealA = {
+        seller: "Shop A",
+        price: 15,
+        delivery_price: 3,
+        free_delivery: null,
+        availability: true,
+        seller_link: "/sa",
+        seller_reviews: 10,
+        seller_reviews_link: "/ra",
+        seller_rating: 4.0,
+      };
+      const dealB = {
+        seller: "Shop B",
+        price: 20,
+        delivery_price: 4,
+        free_delivery: null,
+        availability: true,
+        seller_link: "/sb",
+        seller_reviews: 8,
+        seller_reviews_link: "/rb",
+        seller_rating: 3.5,
+      };
+      model.addItem("Product A", "https://a.com", 1, [dealA]);
+      model.addItem("Product B", "https://b.com", 2, [dealB]);
+
+      const callback = vi.fn();
+      model.subscribe(callback);
+      model.computeDeals();
+
+      const data = callback.mock.calls[0][1];
+      expect(data.bestIndividualDeals["Product A"]).toHaveLength(1);
+      expect(data.bestIndividualDeals["Product B"]).toHaveLength(1);
+      expect(data.bestIndividualDeals["Product B"][0].total_price).toBe(40);
+      expect(
+        data.bestIndividualDeals["Product B"][0].total_price_plus_delivery
+      ).toBe(44);
     });
 
     it("should persist computed deals to storage", () => {

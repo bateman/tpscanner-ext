@@ -61,23 +61,24 @@ describe("Controller", () => {
   });
 
   describe("handleAddItem", () => {
-    it("should execute script, parse results, and add item to model", async () => {
-      const htmlContent =
-        '<div id="listing"><ul><li>' +
-        '<div class="item_info"><div class="item_merchant">' +
-        '<div class="merchant_name_and_logo"><a href="/seller"><span>TestShop</span></a></div>' +
-        '<div class="wrap_merchant_reviews">' +
-        '<a class="merchant_reviews" href="/reviews">100 recensioni</a>' +
-        "</div></div></div>" +
-        '<div class="item_price">' +
-        '<span class="item_basic_price">29,99 &euro;</span>' +
-        '<span class="item_delivery_price">4,99 &euro;</span>' +
-        "</div>" +
-        '<div class="item_actions"><a href="/buy"></a></div>' +
-        "</li></ul></div>";
+    it("should execute script, convert raw data, and add item to model", async () => {
+      const rawItems = [
+        {
+          merchant: "TestShop",
+          merchantLink: "/seller",
+          merchantReviews: "100 recensioni",
+          merchantReviewsLink: "/reviews",
+          merchantRating: null,
+          price: "29,99 \u20AC",
+          deliveryPrice: "4,99 \u20AC",
+          freeDelivery: null,
+          availability: "available",
+          offerLink: "/buy",
+        },
+      ];
 
       globalThis.chrome.scripting.executeScript.mockResolvedValue([
-        { result: htmlContent },
+        { result: rawItems },
       ]);
 
       await controller.handleAddItem("Test Product", "https://example.com", 1, 123);
@@ -85,13 +86,20 @@ describe("Controller", () => {
       expect(globalThis.chrome.scripting.executeScript).toHaveBeenCalledWith(
         expect.objectContaining({
           target: { tabId: 123 },
+          func: expect.any(Function),
         })
       );
       expect(mockModel.addItem).toHaveBeenCalledWith(
         "Test Product",
         "https://example.com",
         1,
-        expect.any(Array)
+        expect.arrayContaining([
+          expect.objectContaining({
+            seller: "TestShop",
+            price: 29.99,
+            delivery_price: 4.99,
+          }),
+        ])
       );
     });
 
@@ -109,10 +117,8 @@ describe("Controller", () => {
     });
 
     it("should add item with empty deals when scraping finds no listings", async () => {
-      const htmlContent = '<div id="listing"><ul></ul></div>';
-
       globalThis.chrome.scripting.executeScript.mockResolvedValue([
-        { result: htmlContent },
+        { result: [] },
       ]);
 
       await controller.handleAddItem("Empty Product", "https://example.com", 1, 123);
