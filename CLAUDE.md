@@ -133,6 +133,35 @@ el.className = "safe-class";
 parent.appendChild(el);
 ```
 
+**tryGet() for optional DOM fields** (used in scraping to handle missing elements without try/catch boilerplate):
+```javascript
+function tryGet(fn, fallback = null) {
+  try { return fn(); } catch (_e) { return fallback; }
+}
+// Usage:
+const rating = tryGet(() => el.querySelector(sel).getAttribute("class"));
+const avail = tryGet(() => el.querySelector(sel).getAttribute("class"), "not available");
+```
+
+**Shared UI builder helpers** (extract repeated DOM creation sequences into named functions to avoid code clones):
+```javascript
+// BAD — duplicated DOM sequence in multiple functions
+const anchor = document.createElement("a");
+anchor.href = link; anchor.textContent = name; anchor.target = "_blank";
+cell.appendChild(anchor);
+// ... same pattern repeated elsewhere
+
+// GOOD — extracted into a reusable helper
+function appendSellerCell(cell, name, link, reviewsLink, reviewsCount) {
+  const sellerAnchor = document.createElement("a");
+  sellerAnchor.href = link;
+  sellerAnchor.textContent = name;
+  sellerAnchor.target = "_blank";
+  cell.appendChild(sellerAnchor);
+  // ... reviews link appended similarly
+}
+```
+
 ## Code Quality & Security
 
 **Security:**
@@ -194,6 +223,7 @@ if (handler) handler(message);
   - Using `Object.entries()` instead of `for...in` + `hasOwnProperty` guards (eliminates 2 branches)
   - Using early returns to avoid deep nesting
 - **Use shared test helpers** (e.g. `createDeal()` builder) to reduce test verbosity. Define helpers at the top of the `describe` block or outside it to keep individual `it()` blocks concise.
+- **Eliminate code duplication (clones).** When the same sequence of operations (especially DOM creation patterns) appears in two or more functions, extract it into a named helper. Examples in this codebase: `appendSellerCell()`, `appendAvailabilityCell()`, `appendRatingCell()` in `deals.js`; `tryGet()` and `scrapeListingElement()` / `scrapeBestPriceElement()` in `scraping.js`. Codacy flags duplicate blocks of 6+ similar lines as clones.
 
 ## Dependencies
 
