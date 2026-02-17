@@ -2,7 +2,9 @@ import { Model } from "./model/model.js";
 import { View } from "./view/view.js";
 import { Controller } from "./controller/controller.js";
 
-const browser = self.browser || self.chrome;
+function getBrowser() {
+  return self.browser || self.chrome;
+}
 
 let controller;
 
@@ -32,7 +34,7 @@ const syncHandlers = new Map([
   ["REQUEST_COMPUTE_DEALS", () => controller.handleComputeDeals()],
 ]);
 
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+getBrowser().runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!controller) {
     sendResponse({ status: "error", error: "Still initializing" });
     return true;

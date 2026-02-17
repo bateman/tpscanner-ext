@@ -53,15 +53,7 @@ export function extractPricesPlusShipping(htmlContent) {
     const doc = parser.parseFromString(htmlContent, "text/html");
 
     for (const element of doc.querySelectorAll("#listing ul li")) {
-      const raw = scrapeListingElement(element);
-      results.push(
-        convertDataTypes(
-          raw.merchant, raw.merchantLink, raw.merchantReviews,
-          raw.merchantReviewsLink, raw.merchantRating, raw.price,
-          raw.deliveryPrice, raw.freeDelivery, raw.availability,
-          raw.offerLink
-        )
-      );
+      results.push(convertDataTypes(scrapeListingElement(element)));
     }
   } catch (error) {
     console.error("Error during scraping.");
@@ -119,11 +111,7 @@ export function extractBestPriceShippingIncluded(htmlContent) {
     const raw = scrapeBestPriceElement(
       doc.querySelector("#listing ul li")
     );
-    item = convertDataTypes(
-      raw.merchant, raw.merchantReviews, raw.merchantRating,
-      raw.price, raw.deliveryPrice, raw.freeDelivery,
-      raw.availability, raw.offerLink
-    );
+    item = convertDataTypes(raw);
   } catch (error) {
     console.error("Error during scraping.");
     throw error;
@@ -132,7 +120,7 @@ export function extractBestPriceShippingIncluded(htmlContent) {
   return [itemName, item];
 }
 
-export function convertDataTypes(
+export function convertDataTypes({
   merchant,
   merchantLink,
   merchantReviews,
@@ -142,22 +130,31 @@ export function convertDataTypes(
   deliveryPrice,
   freeDelivery,
   availability,
-  offerLink
-) {
+  offerLink,
+}) {
   const numberPattern = /\b\d+[,.]?\d*\b/;
   const item = {};
 
   item.seller = merchant;
-  item.seller_link = "https://www.trovaprezzi.it" + merchantLink;
-  item.seller_reviews = parseInt(
-    merchantReviews.match(numberPattern)[0].replace(".", "")
-  );
-  item.seller_reviews_link =
-    "https://www.trovaprezzi.it" + merchantReviewsLink;
+  item.seller_link = merchantLink
+    ? "https://www.trovaprezzi.it" + merchantLink
+    : null;
+  const reviewsMatch = merchantReviews
+    ? merchantReviews.match(numberPattern)
+    : null;
+  item.seller_reviews = reviewsMatch
+    ? parseInt(reviewsMatch[0].replace(".", ""))
+    : 0;
+  item.seller_reviews_link = merchantReviewsLink
+    ? "https://www.trovaprezzi.it" + merchantReviewsLink
+    : null;
   item.seller_rating = merchantRating
     ? parseFloat(merchantRating.split(" ")[2].replace("rate", "")) / 10.0
     : null;
-  item.price = parseFloat(price.match(numberPattern)[0].replace(",", "."));
+  const priceMatch = price ? price.match(numberPattern) : null;
+  item.price = priceMatch
+    ? parseFloat(priceMatch[0].replace(",", "."))
+    : 0;
   item.delivery_price =
     deliveryPrice && deliveryPrice.match(numberPattern)
       ? parseFloat(
@@ -168,7 +165,9 @@ export function convertDataTypes(
     ? parseFloat(freeDelivery.match(numberPattern)[0].replace(",", "."))
     : null;
   item.availability = availability === "available";
-  item.link = "https://www.trovaprezzi.it" + offerLink;
+  item.link = offerLink
+    ? "https://www.trovaprezzi.it" + offerLink
+    : null;
 
   return item;
 }

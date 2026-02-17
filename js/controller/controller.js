@@ -88,20 +88,7 @@ export class Controller {
         func: scrapeListingItems,
       });
       const rawItems = results[0].result;
-      const deals = rawItems.map((item) =>
-        convertDataTypes(
-          item.merchant,
-          item.merchantLink,
-          item.merchantReviews,
-          item.merchantReviewsLink,
-          item.merchantRating,
-          item.price,
-          item.deliveryPrice,
-          item.freeDelivery,
-          item.availability,
-          item.offerLink
-        )
-      );
+      const deals = rawItems.map((item) => convertDataTypes(item));
       this.model.addItem(title, url, quantity, deals);
     } catch (error) {
       console.error("An error occurred adding an item to the basket: ", error);

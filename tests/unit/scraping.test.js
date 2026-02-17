@@ -8,18 +8,18 @@ import {
 describe("scraping", () => {
   describe("convertDataTypes", () => {
     it("should convert merchant data correctly", () => {
-      const result = convertDataTypes(
-        "TestShop",
-        "/merchants/testshop",
-        "150 recensioni",
-        "/merchants/testshop/reviews",
-        "merchant_reviews rating_image rate45",
-        "29,99 \u20AC",
-        "4,99 \u20AC",
-        "49,99 \u20AC",
-        "available",
-        "/go/offer123"
-      );
+      const result = convertDataTypes({
+        merchant: "TestShop",
+        merchantLink: "/merchants/testshop",
+        merchantReviews: "150 recensioni",
+        merchantReviewsLink: "/merchants/testshop/reviews",
+        merchantRating: "merchant_reviews rating_image rate45",
+        price: "29,99 \u20AC",
+        deliveryPrice: "4,99 \u20AC",
+        freeDelivery: "49,99 \u20AC",
+        availability: "available",
+        offerLink: "/go/offer123",
+      });
 
       expect(result.seller).toBe("TestShop");
       expect(result.seller_link).toBe(
@@ -38,18 +38,18 @@ describe("scraping", () => {
     });
 
     it("should handle null delivery price", () => {
-      const result = convertDataTypes(
-        "Shop",
-        "/merchants/shop",
-        "50 recensioni",
-        "/merchants/shop/reviews",
-        null,
-        "10,00 \u20AC",
-        null,
-        null,
-        "not available",
-        "/go/offer"
-      );
+      const result = convertDataTypes({
+        merchant: "Shop",
+        merchantLink: "/merchants/shop",
+        merchantReviews: "50 recensioni",
+        merchantReviewsLink: "/merchants/shop/reviews",
+        merchantRating: null,
+        price: "10,00 \u20AC",
+        deliveryPrice: null,
+        freeDelivery: null,
+        availability: "not available",
+        offerLink: "/go/offer",
+      });
 
       expect(result.delivery_price).toBe(0.0);
       expect(result.free_delivery).toBeNull();
@@ -58,35 +58,35 @@ describe("scraping", () => {
     });
 
     it("should handle reviews with dots as thousand separators", () => {
-      const result = convertDataTypes(
-        "BigShop",
-        "/merchants/bigshop",
-        "1.234 recensioni",
-        "/merchants/bigshop/reviews",
-        null,
-        "10,00 \u20AC",
-        null,
-        null,
-        "available",
-        "/go/offer"
-      );
+      const result = convertDataTypes({
+        merchant: "BigShop",
+        merchantLink: "/merchants/bigshop",
+        merchantReviews: "1.234 recensioni",
+        merchantReviewsLink: "/merchants/bigshop/reviews",
+        merchantRating: null,
+        price: "10,00 \u20AC",
+        deliveryPrice: null,
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
 
       expect(result.seller_reviews).toBe(1234);
     });
 
     it("should parse prices with comma decimal separator", () => {
-      const result = convertDataTypes(
-        "Shop",
-        "/merchants/shop",
-        "10 recensioni",
-        "/merchants/shop/reviews",
-        null,
-        "29,99 \u20AC",
-        "12,50 \u20AC",
-        null,
-        "available",
-        "/go/offer"
-      );
+      const result = convertDataTypes({
+        merchant: "Shop",
+        merchantLink: "/merchants/shop",
+        merchantReviews: "10 recensioni",
+        merchantReviewsLink: "/merchants/shop/reviews",
+        merchantRating: null,
+        price: "29,99 \u20AC",
+        deliveryPrice: "12,50 \u20AC",
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
 
       expect(result.price).toBe(29.99);
       expect(result.delivery_price).toBe(12.5);
@@ -100,55 +100,108 @@ describe("scraping", () => {
       ];
 
       for (const [ratingClass, expected] of ratings) {
-        const result = convertDataTypes(
-          "Shop",
-          "/merchants/shop",
-          "10 recensioni",
-          "/merchants/shop/reviews",
-          ratingClass,
-          "10,00 \u20AC",
-          null,
-          null,
-          "available",
-          "/go/offer"
-        );
+        const result = convertDataTypes({
+          merchant: "Shop",
+          merchantLink: "/merchants/shop",
+          merchantReviews: "10 recensioni",
+          merchantReviewsLink: "/merchants/shop/reviews",
+          merchantRating: ratingClass,
+          price: "10,00 \u20AC",
+          deliveryPrice: null,
+          freeDelivery: null,
+          availability: "available",
+          offerLink: "/go/offer",
+        });
         expect(result.seller_rating).toBe(expected);
       }
     });
 
     it("should handle zero reviews", () => {
-      const result = convertDataTypes(
-        "NewShop",
-        "/merchants/newshop",
-        "0 recensioni",
-        "/merchants/newshop/reviews",
-        null,
-        "10,00 \u20AC",
-        null,
-        null,
-        "available",
-        "/go/offer"
-      );
+      const result = convertDataTypes({
+        merchant: "NewShop",
+        merchantLink: "/merchants/newshop",
+        merchantReviews: "0 recensioni",
+        merchantReviewsLink: "/merchants/newshop/reviews",
+        merchantRating: null,
+        price: "10,00 \u20AC",
+        deliveryPrice: null,
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
 
       expect(result.seller_reviews).toBe(0);
     });
 
     it("should handle delivery price with no numeric value (Gratis)", () => {
-      const result = convertDataTypes(
-        "Shop",
-        "/merchants/shop",
-        "10 recensioni",
-        "/merchants/shop/reviews",
-        null,
-        "10,00 \u20AC",
-        "Gratis",
-        null,
-        "available",
-        "/go/offer"
-      );
+      const result = convertDataTypes({
+        merchant: "Shop",
+        merchantLink: "/merchants/shop",
+        merchantReviews: "10 recensioni",
+        merchantReviewsLink: "/merchants/shop/reviews",
+        merchantRating: null,
+        price: "10,00 \u20AC",
+        deliveryPrice: "Gratis",
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
 
       // "Gratis" does not match the number pattern, so defaults to 0.0
       expect(result.delivery_price).toBe(0.0);
+    });
+
+    it("should handle missing merchantLink and merchantReviewsLink", () => {
+      const result = convertDataTypes({
+        merchant: "Shop",
+        merchantReviews: "10 recensioni",
+        merchantRating: null,
+        price: "10,00 \u20AC",
+        deliveryPrice: null,
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
+
+      expect(result.seller).toBe("Shop");
+      expect(result.seller_link).toBeNull();
+      expect(result.seller_reviews).toBe(10);
+      expect(result.seller_reviews_link).toBeNull();
+      expect(result.price).toBe(10.0);
+    });
+
+    it("should handle missing merchantReviews", () => {
+      const result = convertDataTypes({
+        merchant: "Shop",
+        merchantLink: "/merchants/shop",
+        merchantReviews: null,
+        merchantReviewsLink: "/merchants/shop/reviews",
+        merchantRating: null,
+        price: "10,00 \u20AC",
+        deliveryPrice: null,
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
+
+      expect(result.seller_reviews).toBe(0);
+    });
+
+    it("should handle missing price", () => {
+      const result = convertDataTypes({
+        merchant: "Shop",
+        merchantLink: "/merchants/shop",
+        merchantReviews: "10 recensioni",
+        merchantReviewsLink: "/merchants/shop/reviews",
+        merchantRating: null,
+        price: null,
+        deliveryPrice: null,
+        freeDelivery: null,
+        availability: "available",
+        offerLink: "/go/offer",
+      });
+
+      expect(result.price).toBe(0);
     });
   });
 
@@ -282,12 +335,7 @@ describe("scraping", () => {
   });
 
   describe("extractBestPriceShippingIncluded", () => {
-    it("should have arity bug: calls convertDataTypes with 8 args instead of 10", () => {
-      // This test documents a pre-existing bug in extractBestPriceShippingIncluded.
-      // The function calls convertDataTypes with 8 positional args (missing
-      // merchantLink and merchantReviewsLink), but convertDataTypes expects 10.
-      // This causes the arguments to shift: merchantReviews is treated as
-      // merchantLink, merchantRating as merchantReviews, etc.
+    it("should extract item with missing merchantLink and merchantReviewsLink", () => {
       const html = `
         <div class="name_and_rating"><h1><strong>Test Product</strong></h1></div>
         <div id="listing"><ul><li>
@@ -304,10 +352,18 @@ describe("scraping", () => {
           <div class="item_actions"><a href="/go/offer1"></a></div>
         </li></ul></div>`;
 
-      // The function will error because merchantReviews ("100 recensioni")
-      // is passed as merchantLink, and then merchantRating (null) is passed
-      // as merchantReviews. When it tries to call .match() on null, it throws.
-      expect(() => extractBestPriceShippingIncluded(html)).toThrow();
+      const [itemName, item] = extractBestPriceShippingIncluded(html);
+
+      expect(itemName).toContain("Test Product");
+      expect(item.seller).toBe("TestShop");
+      expect(item.price).toBe(29.99);
+      expect(item.seller_link).toBeNull();
+      expect(item.seller_reviews_link).toBeNull();
+      expect(item.seller_reviews).toBe(100);
+      expect(item.seller_rating).toBeNull();
+      expect(item.delivery_price).toBe(0.0);
+      expect(item.availability).toBe(true);
+      expect(item.link).toBe("https://www.trovaprezzi.it/go/offer1");
     });
   });
 });

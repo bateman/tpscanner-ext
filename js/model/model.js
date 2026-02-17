@@ -202,24 +202,24 @@ export class Model {
       }
     }
 
-    deals.length = 0;
-    deals.push(...newDeals);
-
-    return [count, deals];
+    return [count, newDeals];
   }
 
   static findBestIndividualDeals(itemName, itemDeals, itemQuantity) {
-    let bestIndividualDeals = [];
-    for (let deal of itemDeals) {
-      deal.name = itemName;
-      deal.total_price = deal.price * itemQuantity;
-      deal.total_price_plus_delivery =
-        deal.free_delivery && deal.total_price >= deal.free_delivery
-          ? deal.total_price
-          : deal.total_price + deal.delivery_price;
-      deal.quantity = itemQuantity;
-      bestIndividualDeals.push(deal);
-    }
+    const bestIndividualDeals = itemDeals.map((deal) => {
+      const total_price = deal.price * itemQuantity;
+      const total_price_plus_delivery =
+        deal.free_delivery && total_price >= deal.free_delivery
+          ? total_price
+          : total_price + deal.delivery_price;
+      return {
+        ...deal,
+        name: itemName,
+        total_price,
+        total_price_plus_delivery,
+        quantity: itemQuantity,
+      };
+    });
     bestIndividualDeals.sort(
       (a, b) => a.total_price_plus_delivery - b.total_price_plus_delivery
     );
@@ -279,17 +279,12 @@ export class Model {
       cumulativePrice: 0,
     };
 
-    for (const [itemName, item] of Object.entries(individualDeals)) {
+    for (const [, item] of Object.entries(individualDeals)) {
       if (!Model.isValidItem(item)) continue;
 
       const sellerDeal = Model.findSellerDealForItem(item.deals, seller);
       if (sellerDeal) {
-        Model.updateBestDealItems(
-          bestDealItems,
-          sellerDeal,
-          itemName,
-          item.quantity
-        );
+        Model.updateBestDealItems(bestDealItems, sellerDeal, item.quantity);
       }
     }
 
@@ -310,8 +305,7 @@ export class Model {
     return itemDeals.find((deal) => deal && deal.seller === seller);
   }
 
-  static updateBestDealItems(bestDealItems, deal, itemName, itemQuantity) {
-    bestDealItems.name = itemName;
+  static updateBestDealItems(bestDealItems, deal, itemQuantity) {
     bestDealItems.sellerLink = deal.seller_link;
     bestDealItems.sellerReviews = deal.seller_reviews;
     bestDealItems.sellerReviewsLink = deal.seller_reviews_link;

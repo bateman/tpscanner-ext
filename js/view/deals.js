@@ -29,16 +29,16 @@ document.addEventListener("DOMContentLoaded", function () {
       .split(".")[0];
 
     // First worksheet
-    var wb = XLSX.utils.table_to_book(document.getElementById("bii"), {
+    const wb = XLSX.utils.table_to_book(document.getElementById("bii"), {
       sheet: "Best individual deals",
       display: true,
       raw: true,
     });
-    var ws1 = wb.Sheets["Best individual deals"];
+    const ws1 = wb.Sheets["Best individual deals"];
     ws1["!cols"] = calculateColumnWidths(ws1);
 
     // Second worksheet
-    var ws2 = XLSX.utils.table_to_sheet(document.getElementById("bcd"), {
+    const ws2 = XLSX.utils.table_to_sheet(document.getElementById("bcd"), {
       display: true,
       raw: true,
     });
@@ -80,9 +80,9 @@ async function loadBestDeals() {
     "bestCumulativeDeals",
     "bestOverallDeal",
   ]);
-  var bII = data.bestIndividualDeals || {};
-  var bCD = data.bestCumulativeDeals || {};
-  var bOD = data.bestOverallDeal || {};
+  const bII = data.bestIndividualDeals || {};
+  const bCD = data.bestCumulativeDeals || {};
+  const bOD = data.bestOverallDeal || {};
 
   if (Object.keys(bII).length > 0 || Object.keys(bCD).length > 0) {
     populateBestIndividualDealsTable(bII, bOD);
@@ -90,15 +90,23 @@ async function loadBestDeals() {
   }
 }
 
+function safeHref(url) {
+  try {
+    return new URL(url).toString();
+  } catch (_e) {
+    return "#";
+  }
+}
+
 function appendSellerCell(cell, name, link, reviewsLink, reviewsCount) {
   const sellerAnchor = document.createElement("a");
-  sellerAnchor.href = link;
+  sellerAnchor.href = safeHref(link);
   sellerAnchor.textContent = name;
   sellerAnchor.target = "_blank";
   cell.appendChild(sellerAnchor);
   cell.appendChild(document.createTextNode(" ("));
   const reviewsAnchor = document.createElement("a");
-  reviewsAnchor.href = reviewsLink;
+  reviewsAnchor.href = safeHref(reviewsLink);
   reviewsAnchor.textContent = reviewsCount;
   reviewsAnchor.target = "_blank";
   cell.appendChild(reviewsAnchor);
@@ -125,13 +133,13 @@ function appendRatingCell(cell, rating) {
 }
 
 function populateIndividualDealRow(table, deal, itemName, isFirst, bOD) {
-  var row = table.insertRow(-1);
+  const row = table.insertRow(-1);
   if (isFirst) {
     row.className = "best-deal";
   }
-  var cellProduct = row.insertCell(0);
-  var link = document.createElement("a");
-  link.href = deal.link;
+  const cellProduct = row.insertCell(0);
+  const link = document.createElement("a");
+  link.href = safeHref(deal.link);
   link.textContent = itemName;
   link.target = "_blank";
   cellProduct.appendChild(link);
@@ -147,7 +155,7 @@ function populateIndividualDealRow(table, deal, itemName, isFirst, bOD) {
     deal.total_price_plus_delivery
   );
   appendAvailabilityCell(row.insertCell(7), deal.availability);
-  var cellSeller = row.insertCell(8);
+  const cellSeller = row.insertCell(8);
   appendSellerCell(
     cellSeller, deal.seller, deal.seller_link,
     deal.seller_reviews_link, deal.seller_reviews
@@ -156,7 +164,7 @@ function populateIndividualDealRow(table, deal, itemName, isFirst, bOD) {
 }
 
 function populateBestIndividualDealsTable(bII, bOD) {
-  var table = document.getElementById("bii");
+  const table = document.getElementById("bii");
   let previousItemName = "";
 
   for (const [itemName, itemDeals] of Object.entries(bII)) {
@@ -171,11 +179,11 @@ function populateBestIndividualDealsTable(bII, bOD) {
 }
 
 function populateCumulativeDealRow(table, seller, itemDeal, isFirst, bOD) {
-  var row = table.insertRow(-1);
+  const row = table.insertRow(-1);
   if (isFirst) {
     row.className = "best-deal";
   }
-  var cellSeller = row.insertCell(0);
+  const cellSeller = row.insertCell(0);
   appendSellerCell(
     cellSeller, seller, itemDeal.sellerLink,
     itemDeal.sellerReviewsLink, itemDeal.sellerReviews
@@ -196,7 +204,7 @@ function populateCumulativeDealRow(table, seller, itemDeal, isFirst, bOD) {
 }
 
 function populateBestCumulativeDealsTable(bCD, bOD) {
-  var table = document.getElementById("bcd");
+  const table = document.getElementById("bcd");
   for (const [i, cumulativeDeal] of bCD.entries()) {
     for (const [seller, itemDeal] of Object.entries(cumulativeDeal)) {
       populateCumulativeDealRow(table, seller, itemDeal, i === 0, bOD);

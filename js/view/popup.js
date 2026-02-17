@@ -17,46 +17,38 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("version").textContent = data.version;
     });
 
-  var addButton = document.getElementById("add");
-  var clearButton = document.getElementById("clear");
+  const addButton = document.getElementById("add");
+  const clearButton = document.getElementById("clear");
 
   // Request basket state from background
   browser.runtime.sendMessage({ type: "REQUEST_LOAD_BASKET" });
 
   // Listen for responses from background
+  const messageHandlers = new Map([
+    ["RESPONSE_BASKET_LOADED", (msg) => onBasketLoaded(msg.data)],
+    ["RESPONSE_ITEM_ADDED", (msg) => onItemAdded(msg.data)],
+    ["RESPONSE_ITEM_REMOVED", (msg) => onItemRemoved(msg.data)],
+    ["RESPONSE_BASKET_CLEARED", () => onBasketCleared()],
+    ["RESPONSE_DEALS_COMPUTED", (msg) => onDealsComputed(msg.data)],
+    ["RESPONSE_ERROR", (msg) => console.error("Background error:", msg.data.error)],
+  ]);
+
   browser.runtime.onMessage.addListener((message) => {
-    switch (message.type) {
-      case "RESPONSE_BASKET_LOADED":
-        onBasketLoaded(message.data);
-        break;
-      case "RESPONSE_ITEM_ADDED":
-        onItemAdded(message.data);
-        break;
-      case "RESPONSE_ITEM_REMOVED":
-        onItemRemoved(message.data);
-        break;
-      case "RESPONSE_BASKET_CLEARED":
-        onBasketCleared();
-        break;
-      case "RESPONSE_DEALS_COMPUTED":
-        onDealsComputed(message.data);
-        break;
-      case "RESPONSE_ERROR":
-        console.error("Background error:", message.data.error);
-        break;
-    }
+    const handler = messageHandlers.get(message.type);
+    if (handler) handler(message);
   });
 
   browser.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    var url = tabs[0].url;
-    var title = tabs[0].title;
-    var tabId = tabs[0].id;
+    if (!tabs || tabs.length === 0) return;
+    const url = tabs[0].url;
+    let title = tabs[0].title;
+    const tabId = tabs[0].id;
     if (title) {
       title = title.split("|")[0].trim();
     } else {
       return;
     }
-    var parsedUrl = new URL(url);
+    const parsedUrl = new URL(url);
     if (
       parsedUrl.hostname === "www.trovaprezzi.it" &&
       parsedUrl.pathname !== "/" &&
@@ -66,13 +58,13 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     addButton.addEventListener("click", function () {
-      var parsedUrl = new URL(url);
+      const parsedUrl = new URL(url);
       if (
         parsedUrl.hostname === "www.trovaprezzi.it" &&
         parsedUrl.pathname !== "/" &&
         parsedUrl.pathname !== ""
       ) {
-        var quantity = parseInt(document.getElementById("quantity").value, 10) || 1;
+        const quantity = parseInt(document.getElementById("quantity").value, 10) || 1;
         browser.runtime.sendMessage({
           type: "REQUEST_ADD_ITEM",
           title: title,
@@ -159,71 +151,71 @@ function onDealsComputed(data) {
 
 // --- UI Functions ---
 
+function highlightRow(row, quantity) {
+  row.cells[1].getElementsByTagName("input")[0].value = quantity;
+  row.classList.add("blink");
+  row.style.backgroundColor = "#f4f8fb";
+  setTimeout(function () {
+    row.classList.remove("blink");
+    row.style.backgroundColor = "";
+  }, 1000);
+}
+
+function createItemRow(itemsTable, title, url, quantity) {
+  const row = itemsTable.insertRow();
+
+  const cellTitle = row.insertCell(0);
+  const link = document.createElement("a");
+  try {
+    link.href = new URL(url).toString();
+  } catch (_e) {
+    link.href = "https://www.trovaprezzi.it";
+  }
+  link.textContent = title;
+  link.target = "_blank";
+  cellTitle.appendChild(link);
+
+  const cellQty = row.insertCell(1);
+  const qtyInput = document.createElement("input");
+  qtyInput.type = "number";
+  qtyInput.value = quantity;
+  qtyInput.min = "1";
+  qtyInput.addEventListener("change", function () {
+    browser.runtime.sendMessage({
+      type: "REQUEST_UPDATE_QUANTITY",
+      title: title,
+      quantity: parseInt(this.value, 10) || 1,
+    });
+  });
+  cellQty.appendChild(qtyInput);
+
+  const cellBtn = row.insertCell(2);
+  const removeButton = document.createElement("button");
+  removeButton.textContent = "x";
+  removeButton.classList.add("remove");
+  removeButton.addEventListener("click", function () {
+    itemsTable.deleteRow(row.rowIndex - 1);
+    browser.runtime.sendMessage({
+      type: "REQUEST_REMOVE_ITEM",
+      title: title,
+    });
+  });
+  cellBtn.appendChild(removeButton);
+}
+
 function addItemToList(title, url, quantity) {
-  var itemsTable = document
+  const itemsTable = document
     .getElementById("items")
     .getElementsByTagName("tbody")[0];
-  var rowExists = false;
 
-  for (let row of itemsTable.rows) {
+  for (const row of itemsTable.rows) {
     if (row.cells[0].textContent === title) {
-      row.cells[1].getElementsByTagName("input")[0].value = quantity;
-      rowExists = true;
-
-      row.classList.add("blink");
-      row.style.backgroundColor = "#f4f8fb";
-
-      setTimeout(function () {
-        row.classList.remove("blink");
-        row.style.backgroundColor = "";
-      }, 1000);
-
-      break;
+      highlightRow(row, quantity);
+      return;
     }
   }
 
-  if (!rowExists) {
-    var row = itemsTable.insertRow();
-
-    var cellTitle = row.insertCell(0);
-    var link = document.createElement("a");
-    try {
-      link.href = new URL(url).toString();
-    } catch (e) {
-      console.error(e);
-      link.href = "https://www.trovaprezzi.it";
-    }
-    link.textContent = title;
-    link.target = "_blank";
-    cellTitle.appendChild(link);
-
-    var cellQty = row.insertCell(1);
-    var qtyInput = document.createElement("input");
-    qtyInput.type = "number";
-    qtyInput.value = quantity;
-    qtyInput.min = "1";
-    qtyInput.addEventListener("change", function () {
-      browser.runtime.sendMessage({
-        type: "REQUEST_UPDATE_QUANTITY",
-        title: title,
-        quantity: parseInt(this.value, 10) || 1,
-      });
-    });
-    cellQty.appendChild(qtyInput);
-
-    var cellBtn = row.insertCell(2);
-    var removeButton = document.createElement("button");
-    removeButton.textContent = "x";
-    removeButton.classList.add("remove");
-    removeButton.addEventListener("click", function () {
-      itemsTable.deleteRow(row.rowIndex - 1);
-      browser.runtime.sendMessage({
-        type: "REQUEST_REMOVE_ITEM",
-        title: title,
-      });
-    });
-    cellBtn.appendChild(removeButton);
-  }
+  createItemRow(itemsTable, title, url, quantity);
 }
 
 function updateBestDealsMessage(
@@ -233,9 +225,9 @@ function updateBestDealsMessage(
 ) {
   const boxDeals = document.getElementById("box-deals");
 
-  let n = getIndividualDealsCount(individualDeals);
-  let m = getCumulativeDealsCount(cumulativeDeals);
-  let t = getBestTotalPrice(overallDeal);
+  const n = getIndividualDealsCount(individualDeals);
+  const m = getCumulativeDealsCount(cumulativeDeals);
+  const t = getBestTotalPrice(overallDeal);
 
   if (n !== -1 && m !== -1) {
     displayDealsMessage(boxDeals, n, m, t);
@@ -292,7 +284,7 @@ function displayDealsMessage(
 
 async function updateImageSrc() {
   try {
-    let [tab] = await browser.tabs.query({
+    const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true,
     });
@@ -303,9 +295,9 @@ async function updateImageSrc() {
           .executeScript({
             target: { tabId: tab.id },
             func: function () {
-              var xpath =
+              const xpath =
                 './/a[@class="gallery_popup_link first" or @class="suggested_product"]/img';
-              var result = document.evaluate(
+              const result = document.evaluate(
                 xpath,
                 document,
                 null,
