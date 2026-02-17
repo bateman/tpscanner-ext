@@ -1,9 +1,121 @@
+/* global DOMParser */
 import { describe, it, expect } from "vitest";
-import {
-  extractPricesPlusShipping,
-  extractBestPriceShippingIncluded,
-  convertDataTypes,
-} from "../../js/utils/scraping.js";
+import { convertDataTypes } from "../../js/utils/scraping.js";
+
+// --- Test-only HTML parsing utilities ---
+// These simulate what executeScript does in the page context.
+// They use DOMParser (available in jsdom) to parse HTML fixtures.
+
+function tryGet(fn, fallback = null) {
+  try {
+    return fn();
+  } catch (_e) {
+    return fallback;
+  }
+}
+
+function scrapeListingElement(element) {
+  const info = element.querySelector(".item_info .item_merchant");
+  const prices = element.querySelector(".item_price");
+  const reviewsSel =
+    '.wrap_merchant_reviews a[class="merchant_reviews"]';
+  const ratingSel =
+    '.wrap_merchant_reviews a[class^="merchant_reviews rating_image"]';
+  return {
+    merchant: info.querySelector("a span").textContent.trim(),
+    merchantLink: info
+      .querySelector(".merchant_name_and_logo a")
+      .getAttribute("href"),
+    merchantReviews: info.querySelector(reviewsSel).textContent.trim(),
+    merchantReviewsLink: info
+      .querySelector(reviewsSel)
+      .getAttribute("href"),
+    merchantRating: tryGet(() =>
+      info.querySelector(ratingSel).getAttribute("class")
+    ),
+    price: prices.querySelector(".item_basic_price").textContent.trim(),
+    deliveryPrice: tryGet(() =>
+      prices.querySelector(".item_delivery_price").textContent.trim()
+    ),
+    freeDelivery: tryGet(() =>
+      prices
+        .querySelector(".free_shipping_threshold span span span")
+        .textContent.trim()
+    ),
+    availability: tryGet(
+      () =>
+        prices
+          .querySelector(".item_availability span")
+          .getAttribute("class"),
+      "not available"
+    ),
+    offerLink: element
+      .querySelector(".item_actions a")
+      .getAttribute("href"),
+  };
+}
+
+function scrapeBestPriceElement(element) {
+  const info = element.querySelector(".item_info .item_merchant");
+  const prices = element.querySelector(".item_price.total_price_sorting");
+  const reviewsSel =
+    '.wrap_merchant_reviews a[class="merchant_reviews"]';
+  const ratingSel =
+    '.wrap_merchant_reviews a[class^="merchant_reviews rating_image"]';
+  return {
+    merchant: info.querySelector("a span").textContent.trim(),
+    merchantReviews: info.querySelector(reviewsSel).textContent.trim(),
+    merchantRating: tryGet(() =>
+      info.querySelector(ratingSel).getAttribute("class")
+    ),
+    price: prices.querySelector(".item_basic_price").textContent.trim(),
+    deliveryPrice: null,
+    freeDelivery: tryGet(() =>
+      prices
+        .querySelector(".free_shipping_threshold span span span")
+        .textContent.trim()
+    ),
+    availability: tryGet(
+      () =>
+        prices
+          .querySelector(".item_availability span")
+          .getAttribute("class"),
+      "not available"
+    ),
+    offerLink: element
+      .querySelector(".item_actions a")
+      .getAttribute("href"),
+  };
+}
+
+function extractPricesPlusShipping(htmlContent) {
+  const results = [];
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, "text/html");
+    for (const element of doc.querySelectorAll("#listing ul li")) {
+      results.push(convertDataTypes(scrapeListingElement(element)));
+    }
+  } catch (_e) {
+    // Return empty results for invalid HTML
+  }
+  return results;
+}
+
+function extractBestPriceShippingIncluded(htmlContent) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlContent, "text/html");
+  const itemNames = Array.from(
+    doc.querySelectorAll(
+      ".name_and_rating h1 strong, .name_and_rating h1"
+    )
+  ).map((el) => el.textContent.trim());
+  const itemName = itemNames.join(" ").trim();
+  const raw = scrapeBestPriceElement(
+    doc.querySelector("#listing ul li")
+  );
+  return [itemName, convertDataTypes(raw)];
+}
 
 describe("scraping", () => {
   describe("convertDataTypes", () => {
