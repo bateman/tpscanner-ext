@@ -105,129 +105,101 @@ function appendSellerCell(cell, name, link, reviewsLink, reviewsCount) {
   cell.appendChild(document.createTextNode(")"));
 }
 
+function appendAvailabilityCell(cell, isAvailable) {
+  const text = document.createTextNode(
+    isAvailable
+      ? browser.i18n.getMessage("dealsDisplayerYes")
+      : browser.i18n.getMessage("dealsDisplayerNo")
+  );
+  const symbol = document.createElement("span");
+  symbol.textContent = isAvailable ? "\u2713" : "\u2717";
+  cell.appendChild(text);
+  cell.appendChild(symbol);
+}
+
+function appendRatingCell(cell, rating) {
+  const text = rating
+    ? rating.toFixed(1) + " / 5 \u2605"
+    : "N/A";
+  cell.textContent = text;
+}
+
+function populateIndividualDealRow(table, deal, itemName, isFirst, bOD) {
+  var row = table.insertRow(-1);
+  if (isFirst) {
+    row.className = "best-deal";
+  }
+  var cellProduct = row.insertCell(0);
+  var link = document.createElement("a");
+  link.href = deal.link;
+  link.textContent = itemName;
+  link.target = "_blank";
+  cellProduct.appendChild(link);
+  if (isFirst && bOD.best_deal_type === "individual") {
+    cellProduct.appendChild(document.createTextNode(" \uD83E\uDD47"));
+  }
+  row.insertCell(1).textContent = deal.quantity;
+  row.insertCell(2).textContent = formatCurrency(deal.price);
+  row.insertCell(3).textContent = formatCurrency(deal.total_price);
+  row.insertCell(4).textContent = formatCurrency(deal.delivery_price);
+  row.insertCell(5).textContent = formatCurrency(deal.free_delivery || 0.0);
+  row.insertCell(6).textContent = formatCurrency(
+    deal.total_price_plus_delivery
+  );
+  appendAvailabilityCell(row.insertCell(7), deal.availability);
+  var cellSeller = row.insertCell(8);
+  appendSellerCell(
+    cellSeller, deal.seller, deal.seller_link,
+    deal.seller_reviews_link, deal.seller_reviews
+  );
+  appendRatingCell(row.insertCell(9), deal.seller_rating);
+}
+
 function populateBestIndividualDealsTable(bII, bOD) {
   var table = document.getElementById("bii");
   let previousItemName = "";
 
-  Object.keys(bII).forEach((itemName) => {
-    if (!Object.prototype.hasOwnProperty.call(bII, itemName)) {
-      return;
-    }
-
-    const itemDeals = bII[itemName];
-    if (!Array.isArray(itemDeals)) {
-      return;
-    }
+  for (const [itemName, itemDeals] of Object.entries(bII)) {
+    if (!Array.isArray(itemDeals)) continue;
 
     for (const deal of itemDeals) {
-      var row = table.insertRow(-1);
-      if (previousItemName !== itemName) {
-        row.className = "best-deal";
-      }
-      var cellProduct = row.insertCell(0);
-      var link = document.createElement("a");
-      link.href = deal.link;
-      link.textContent = itemName;
-      link.target = "_blank";
-      cellProduct.appendChild(link);
-      if (
-        previousItemName !== itemName &&
-        bOD.best_deal_type === "individual"
-      ) {
-        var img = document.createTextNode(" \uD83E\uDD47");
-        cellProduct.appendChild(img);
-      }
+      const isFirst = previousItemName !== itemName;
+      populateIndividualDealRow(table, deal, itemName, isFirst, bOD);
       previousItemName = itemName;
-      var cellQty = row.insertCell(1);
-      cellQty.textContent = deal.quantity;
-      var cellPrice = row.insertCell(2);
-      cellPrice.textContent = formatCurrency(deal.price);
-      var cellTotalPrice = row.insertCell(3);
-      cellTotalPrice.textContent = formatCurrency(deal.total_price);
-      var cellDelivery = row.insertCell(4);
-      cellDelivery.textContent = formatCurrency(deal.delivery_price);
-      var cellFreeDelivery = row.insertCell(5);
-      var temp = deal.free_delivery ? deal.free_delivery : 0.0;
-      cellFreeDelivery.textContent = formatCurrency(temp);
-      var cellTotalPricePlusDelivery = row.insertCell(6);
-      cellTotalPricePlusDelivery.textContent = formatCurrency(
-        deal.total_price_plus_delivery
-      );
-      var cellAvailability = row.insertCell(7);
-      let text = document.createTextNode(
-        deal.availability
-          ? browser.i18n.getMessage("dealsDisplayerYes")
-          : browser.i18n.getMessage("dealsDisplayerNo")
-      );
-      let symbol = document.createElement("span");
-      symbol.textContent = deal.availability ? "\u2713" : "\u2717";
-      cellAvailability.textContent = "";
-      cellAvailability.appendChild(text);
-      cellAvailability.appendChild(symbol);
-      var cellSeller = row.insertCell(8);
-      appendSellerCell(
-        cellSeller, deal.seller, deal.seller_link,
-        deal.seller_reviews_link, deal.seller_reviews
-      );
-      var cellSellerRating = row.insertCell(9);
-      var ratingText = deal.seller_rating
-        ? deal.seller_rating.toFixed(1) + " / 5 \u2605"
-        : "N/A";
-      cellSellerRating.appendChild(document.createTextNode(ratingText));
     }
-  });
+  }
+}
+
+function populateCumulativeDealRow(table, seller, itemDeal, isFirst, bOD) {
+  var row = table.insertRow(-1);
+  if (isFirst) {
+    row.className = "best-deal";
+  }
+  var cellSeller = row.insertCell(0);
+  appendSellerCell(
+    cellSeller, seller, itemDeal.sellerLink,
+    itemDeal.sellerReviewsLink, itemDeal.sellerReviews
+  );
+  if (isFirst && bOD.best_deal_type === "cumulative") {
+    cellSeller.appendChild(document.createTextNode(" \uD83E\uDD47"));
+  }
+  appendRatingCell(row.insertCell(1), itemDeal.sellerRating);
+  row.insertCell(2).textContent = formatCurrency(itemDeal.cumulativePrice);
+  row.insertCell(3).textContent = formatCurrency(itemDeal.deliveryPrice);
+  row.insertCell(4).textContent = formatCurrency(
+    itemDeal.freeDelivery || 0.0
+  );
+  row.insertCell(5).textContent = formatCurrency(
+    itemDeal.cumulativePricePlusDelivery
+  );
+  appendAvailabilityCell(row.insertCell(6), itemDeal.availability);
 }
 
 function populateBestCumulativeDealsTable(bCD, bOD) {
   var table = document.getElementById("bcd");
-  for (let i = 0; i < bCD.length; i++) {
-    var cumulativeDeal = bCD[i];
-    for (let seller in cumulativeDeal) {
-      if (Object.prototype.hasOwnProperty.call(cumulativeDeal, seller)) {
-        var itemDeal = cumulativeDeal[seller];
-        var row = table.insertRow(-1);
-        if (i === 0) {
-          row.className = "best-deal";
-        }
-        var cellSeller = row.insertCell(0);
-        appendSellerCell(
-          cellSeller, seller, itemDeal.sellerLink,
-          itemDeal.sellerReviewsLink, itemDeal.sellerReviews
-        );
-        if (i === 0 && bOD.best_deal_type === "cumulative") {
-          var img = document.createTextNode(" \uD83E\uDD47");
-          cellSeller.appendChild(img);
-        }
-        var cellRating = row.insertCell(1);
-        var ratingText = itemDeal.sellerRating
-          ? itemDeal.sellerRating.toFixed(1) + " / 5 \u2605"
-          : "N/A";
-        cellRating.textContent = ratingText;
-        var cellCumulativePrice = row.insertCell(2);
-        cellCumulativePrice.textContent = formatCurrency(
-          itemDeal.cumulativePrice
-        );
-        var cellDelivery = row.insertCell(3);
-        cellDelivery.textContent = formatCurrency(itemDeal.deliveryPrice);
-        var cellFreeDelivery = row.insertCell(4);
-        var temp = itemDeal.freeDelivery ? itemDeal.freeDelivery : 0.0;
-        cellFreeDelivery.textContent = formatCurrency(temp);
-        var cellCumulativePricePlusDelivery = row.insertCell(5);
-        cellCumulativePricePlusDelivery.textContent = formatCurrency(
-          itemDeal.cumulativePricePlusDelivery
-        );
-        var cellAvailability = row.insertCell(6);
-        let text = document.createTextNode(
-          itemDeal.availability
-            ? browser.i18n.getMessage("dealsDisplayerYes")
-            : browser.i18n.getMessage("dealsDisplayerNo")
-        );
-        let symbol = document.createElement("span");
-        symbol.textContent = itemDeal.availability ? "\u2713" : "\u2717";
-        cellAvailability.textContent = "";
-        cellAvailability.appendChild(text);
-        cellAvailability.appendChild(symbol);
-      }
+  for (const [i, cumulativeDeal] of bCD.entries()) {
+    for (const [seller, itemDeal] of Object.entries(cumulativeDeal)) {
+      populateCumulativeDealRow(table, seller, itemDeal, i === 0, bOD);
     }
   }
 }
