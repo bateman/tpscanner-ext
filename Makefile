@@ -12,12 +12,12 @@ SED := $(shell command -v sed 2> /dev/null)
 SED_INPLACE := $(shell if $(SED) --version >/dev/null 2>&1; then echo "$(SED) -i"; else echo "$(SED) -i ''"; fi)
 AWK := $(shell command -v awk 2> /dev/null)
 GIT := $(shell command -v git 2> /dev/null)
-GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+GIT_VERSION := $(shell $(GIT) --version 2> /dev/null || printf '\033[31mnot installed\033[0m')
 NPM := $(shell command -v npm 2> /dev/null)
-NPM_VERSION := $(shell $(NPM) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+NPM_VERSION := $(shell npm --version 2> /dev/null || printf '\033[31mnot installed\033[0m')
 XCRUN := $(shell command -v xcrun 2> /dev/null)
-XCRUN_VERSION := $(shell $(XCRUN) --version 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
-XCODEBUILD := $(shell command -v xcodebuild 2> /dev/null || echo -e "\033[31mnot installed\033[0m")
+XCRUN_VERSION := $(shell $(XCRUN) --version 2> /dev/null || printf '\033[31mnot installed\033[0m')
+XCODEBUILD := $(shell command -v xcodebuild 2> /dev/null || printf '\033[31mnot installed\033[0m')
 
 # Apps
 CHROME_APP := Google Chrome.app
@@ -57,11 +57,9 @@ SRC_FILES := $(shell find $(SRC) -type f)
 JS_FILES := $(shell find $(JS) -name '*.js' -not -name '*.min.js')
 
 # Stamp files
-RELEASE_TIMESTAMP := .release.stamp
 CHROME_BUILD_TIMESTAMP := .chrome.stamp
 FIREFOX_BUILD_TIMESTAMP := .firefox.stamp
 SAFARI_BUILD_TIMESTAMP := .safari.stamp
-STAGING_STAMP := .staging.stamp
 RELEASE_STAMP := .release.stamp
 STAMP_FILES := $(wildcard .*.stamp)
 
@@ -113,54 +111,55 @@ dep/git:
 .PHONY: dep/xcode
 dep/xcode:
 	@echo -e "$(CYAN)\nChecking if Xcode is installed...$(RESET)"
-	@xcode-select -p || "echo 'Xcode is not installed.'"
+	@xcode-select -p || echo 'Xcode is not installed.'
 
 .PHONY: dep/macos
 dep/macos:
 	@echo -e "$(CYAN)\nChecking if OS is MacOS...$(RESET)"
-	@uname -s | grep "Darwin" || "echo 'Run targets are only available on MacOS.'"
+	@uname -s | grep "Darwin" || echo 'Run targets are only available on MacOS.'
 
 .PHONY: dep/chrome
 dep/chrome: | dep/macos
 	@echo -e "$(CYAN)\nChecking if Google Chrome is installed...$(RESET)"
-	@ls /Applications | grep -x "$(CHROME_APP)" || echo -e "$(RED)Google Chrome is not installed.$(RESET)"
+	@ls /Applications | grep -x "$(CHROME_APP)" || { echo -e "$(RED)Google Chrome is not installed.$(RESET)"; exit 1; }
 
 .PHONY: dep/firefox
 dep/firefox: | dep/macos
 	@echo -e "$(CYAN)\nChecking if Firefox Developer Edition is installed...$(RESET)"
-	@ls /Applications | grep -x "$(FIREFOX_APP)" || echo -e "$(RED)Firefox Developer Edition is not installed.$(RESET)"
+	@ls /Applications | grep -x "$(FIREFOX_APP)" || { echo -e "$(RED)Firefox Developer Edition is not installed.$(RESET)"; exit 1; }
 	@echo -e "$(CYAN)\nChecking if web-ext is installed...$(RESET)"
-	@web-ext --version || echo -e "$(RED)web-ext is not installed.$(RESET)"
+	@web-ext --version || { echo -e "$(RED)web-ext is not installed.$(RESET)"; exit 1; }
 
 .PHONY: dep/edge
 dep/edge: | dep/macos
 	@echo -e "$(CYAN)\nChecking if Microsoft Edge is installed...$(RESET)"
-	@ls /Applications | grep -x "$(EDGE_APP)" || echo -e "$(RED)Microsoft Edge is not installed.$(RESET)"
+	@ls /Applications | grep -x "$(EDGE_APP)" || { echo -e "$(RED)Microsoft Edge is not installed.$(RESET)"; exit 1; }
 
 .PHONY: dep/safari
 dep/safari: | dep/macos
 	@echo -e "$(CYAN)\nChecking if Safari is installed...$(RESET)"
-	@ls /Applications | grep -x "$(SAFARI_APP)" || echo -e "$(RED)Safari is not installed.$(RESET)"
+	@ls /Applications | grep -x "$(SAFARI_APP)" || { echo -e "$(RED)Safari is not installed.$(RESET)"; exit 1; }
 
-.PHONY: dep/npm
-dep/npm:
-	@if [ -z "$(NPM)" ]; then echo -e "$(RED)npm not found.$(RESET)" && exit 1; fi
-	@if [ ! -d node_modules ]; then echo -e "$(CYAN)Installing npm dependencies...$(RESET)" && $(NPM) install; fi
+#-- Test
 
-#-- Test targets
+node_modules: package.json
+	@echo -e "$(CYAN)Installing dependencies...$(RESET)"
+	@npm install
 
 .PHONY: test
-test: | dep/npm  ## Run unit tests
+test: node_modules  ## Run unit tests
 	@echo -e "$(CYAN)\nRunning unit tests...$(RESET)"
-	@$(NPM) test
+	@npx vitest run
 	@echo -e "$(GREEN)Done.$(RESET)"
 
 .PHONY: test/watch
-test/watch: | dep/npm  ## Run unit tests in watch mode
-	@echo -e "$(CYAN)\nRunning unit tests in watch mode...$(RESET)"
-	@$(NPM) run test:watch
+test/watch: node_modules  ## Run unit tests in watch mode
+	@npx vitest
 
 #-- Build targets
+
+.PHONY: build
+build: build/all  ## Build all extensions (alias: build/all)
 
 .PHONY: build/firefox
 build/firefox: $(FIREFOX_BUILD_TIMESTAMP)  ## Build Firefox addon XPI and sources
@@ -186,11 +185,11 @@ $(SAFARI_BUILD_TIMESTAMP): $(SRC_FILES) $(MANIFEST)
 	@mkdir -p $(BUILD_DIR)/$(SAFARI_DIR)/build > /dev/null
 	@mkdir -p $(BUILD_DIR)/$(SAFARI_DIR)/src > /dev/null
 	@mkdir -p $(BUILD_DIR)/$(SAFARI_DIR)/pkg > /dev/null
-	@cp $(MANIFEST) $(BUILD_DIR)/$(SAFARI_DIR)/src 
-	@cp -r $(HTML) $(BUILD_DIR)/$(SAFARI_DIR)/src 
-	@cp -r $(IMAGES) $(BUILD_DIR)/$(SAFARI_DIR)/src 
-	@cp -r $(JS) $(BUILD_DIR)/$(SAFARI_DIR)/src 
-	@cp -r $(CSS) $(BUILD_DIR)/$(SAFARI_DIR)/src 
+	@cp $(MANIFEST) $(BUILD_DIR)/$(SAFARI_DIR)/src
+	@cp -r $(HTML) $(BUILD_DIR)/$(SAFARI_DIR)/src
+	@cp -r $(IMAGES) $(BUILD_DIR)/$(SAFARI_DIR)/src
+	@cp -r $(JS) $(BUILD_DIR)/$(SAFARI_DIR)/src
+	@cp -r $(CSS) $(BUILD_DIR)/$(SAFARI_DIR)/src
 	@$(XCRUN) safari-web-extension-converter $(BUILD_DIR)/$(SAFARI_DIR)/src --app-name "$(APP_NAME)" --bundle-identifier "dev.fcalefato.$(APP_NAME)" --project-location $(BUILD_DIR)/$(SAFARI_DIR) --no-prompt --no-open --force --macos-only
 	@cd $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME) && $(XCODEBUILD) -quiet -target $(APP_NAME) -configuration Release clean build
 	@zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)-appex-$(APP_VERSION).zip $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)/build/Release/$(APP_NAME).app
@@ -207,11 +206,14 @@ $(CHROME_BUILD_TIMESTAMP): $(SRC_FILES) $(MANIFEST)
 	@echo -e "$(GREEN)Done$(RESET)"
 
 .PHONY: build/edge
-buid/edge:  ## Build Edge extension zip (same as Chrome)
-	$(MAKE) build/chrome
+build/edge: build/chrome  ## Build Edge extension zip (same as Chrome)
 
-.PHONY: clean
-build/clean:  # Clean up build directory and remove all timestamps
+.PHONY: build/all
+build/all: build/chrome build/firefox build/safari  ## Build all extensions (alias: build)
+	@echo -e "$(CYAN)\nAll extensions built.$(RESET)"
+
+.PHONY: build/clean
+build/clean:  ## Clean up build directory and remove all timestamps
 	@echo -e "$(CYAN)\nCleaning up $(BUILD_DIR) directory...$(RESET)"
 	@rm -rf $(BUILD_DIR)/$(FIREFOX_DIR)
 	@rm -rf $(BUILD_DIR)/$(SAFARI_DIR)
@@ -219,97 +221,96 @@ build/clean:  # Clean up build directory and remove all timestamps
 	@rm -f $(STAMP_FILES)
 	@echo -e "$(GREEN)Done.$(RESET)"
 
-.PHONY: build/all
-build/all:  ## Build all extensions
-	@echo -e "$(CYAN)\nBuilding all extensions...$(RESET)"
-	$(MAKE) build/chrome 
-	$(MAKE) build/firefox 
-	$(MAKE) build/safari
-
 #-- Release
 
-.PHONY: tag
-tag: | dep/git
-	@$(eval TAG := $(shell $(GIT) describe --tags --abbrev=0))
-	@$(eval BEHIND_AHEAD := $(shell $(GIT) rev-list --left-right --count $(TAG)...origin/main))
-	@$(shell if [ "$(BEHIND_AHEAD)" = "0	0" ]; then echo "false" > $(RELEASE_STAMP); else echo "true" > $(RELEASE_STAMP); fi)
-	@echo -e "$(CYAN)\nChecking if a new release is needed...$(RESET)"
-	@echo -e "  $(CYAN)Current tag:$(RESET) $(TAG)"
-	@echo -e "  $(CYAN)Commits behind/ahead:$(RESET) $(shell echo ${BEHIND_AHEAD} | tr '[:space:]' '/' | $(SED) 's/\/$$//')"
-	@echo -e "  $(CYAN)Needs release:$(RESET) $(shell cat $(RELEASE_STAMP))"
-
-.PHONY: staging
-staging: | dep/git
-	@if $(GIT) diff --cached --quiet; then \
-		echo "true" > $(STAGING_STAMP); \
-	else \
-		echo "false" > $(STAGING_STAMP); \
-	fi; \
-	echo -e "$(CYAN)\nChecking the staging area...$(RESET)"; \
-	echo -e "  $(CYAN)Staging area empty:$(RESET) $$(cat $(STAGING_STAMP))"
-
 define update_version
-	echo -e "$(CYAN)\nBump version from $(APP_VERSION) to $(1).$(RESET)" ; \
-	cat $(MANIFEST) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
-	mv $(MANIFEST_TMP) $(MANIFEST) ; \
-	cat $(MANIFEST_FIREFOX) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
-	mv $(MANIFEST_TMP) $(MANIFEST_FIREFOX) ; \
-	cat package.json | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) ; \
-	mv $(MANIFEST_TMP) package.json ; \
-	$(GIT) add $(MANIFEST) $(MANIFEST_FIREFOX) package.json ; \
-	$(GIT) commit -m "Bump version to $(1)"
+    echo -e "$(CYAN)\nBump version from $(APP_VERSION) to $(1)$(RESET)" && \
+    cat $(MANIFEST) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) && \
+    mv $(MANIFEST_TMP) $(MANIFEST) && \
+    cat $(MANIFEST_FIREFOX) | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) && \
+    mv $(MANIFEST_TMP) $(MANIFEST_FIREFOX) && \
+    cat package.json | $(SED) -E "s/\"version\": \"[0-9]+\.[0-9]+\.[0-9]+\"/\"version\": \"$(1)\"/" > $(MANIFEST_TMP) && \
+    mv $(MANIFEST_TMP) package.json && \
+    echo -e "$(GREEN)Version updated.$(RESET)"
 endef
 
-.PHONY: tag/patch
-tag/patch: | tag staging  ## Bump patch semantic version in manifest files (e.g., 1.0.0 -> 1.0.1)
+.PHONY: bump/patch
+bump/patch: | release/check  ## Bump patch version (e.g., 1.0.0 -> 1.0.1)
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		NEW_VERSION=$$(echo $(APP_VERSION) | $(AWK) -F. -v OFS=. '{$$NF++; print $$0}') ; \
 		$(call update_version,$$NEW_VERSION) ; \
 	fi
 
-.PHONY: tag/minor
-tag/minor: | tag staging  ## Bump minor semantic version in manifest files (e.g., 1.0.0 -> 1.1.0)
+.PHONY: bump/minor
+bump/minor: | release/check  ## Bump minor version (e.g., 1.0.0 -> 1.1.0)
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		NEW_VERSION=$$(echo $(APP_VERSION) | $(AWK) -F. -v OFS=. '{$$(NF-1)++; $$NF=0; print $$0}') ; \
 		$(call update_version,$$NEW_VERSION) ; \
 	fi
 
-.PHONY: tag/major
-tag/major: | tag staging  ## Bump major semantic version in manifest files (e.g., 1.0.0 -> 2.0.0)
+.PHONY: bump/major
+bump/major: | release/check  ## Bump major version (e.g., 1.0.0 -> 2.0.0)
 	@NEEDS_RELEASE=$$(cat $(RELEASE_STAMP)); \
 	if [ "$$NEEDS_RELEASE" = "true" ]; then \
 		NEW_VERSION=$$(echo $(APP_VERSION) | $(AWK) -F. -v OFS=. '{$$1++; $$2=0; $$3=0; print $$0}') ; \
 		$(call update_version,$$NEW_VERSION) ; \
 	fi
 
+.PHONY: tag/apply
+tag/apply: | dep/git  ## Create local tag from manifest version
+	@$(eval TAG := v$(APP_VERSION))
+	@if $(GIT) rev-parse $(TAG) >/dev/null 2>&1; then \
+		echo -e "$(ORANGE)\nTag $(TAG) already exists.$(RESET)"; \
+	else \
+		echo -e "$(CYAN)\nCreating tag $(TAG)...$(RESET)"; \
+		$(GIT) tag $(TAG); \
+		echo -e "$(GREEN)Done. Tag $(TAG) created.$(RESET)"; \
+	fi
+
 .PHONY: tag/push
-tag/push: | dep/git  ## Push the tag to origin - triggers the release action
-	@$(eval TAG := $(shell echo $(APP_VERSION)))
+tag/push: | dep/git tag/apply  ## Push local tag to origin (triggers release action)
+	@$(eval TAG := $(shell echo v$(APP_VERSION)))
 	@$(eval REMOTE_TAGS := $(shell $(GIT) ls-remote --tags origin | $(AWK) '{print $$2}'))
 	@if echo $(REMOTE_TAGS) | grep -q $(TAG); then \
 		echo -e "$(ORANGE)\nNothing to push: tag $(TAG) already exists on origin.$(RESET)"; \
 	else \
 		echo -e "$(CYAN)\nPushing pending commits to origin...$(RESET)" ; \
 		$(GIT) push origin main ; \
-		echo -e "$(CYAN)\nTagging version $(TAG) and pushing to origin...$(RESET)" ; \
-		$(GIT) tag $(TAG) ; \
+		echo -e "$(CYAN)\nPushing tag $(TAG) to origin...$(RESET)" ; \
 		$(GIT) push origin $(TAG) ; \
 		echo -e "$(GREEN)Done.$(RESET)" ; \
 	fi
 
-.PHONY: tag/delete 
+.PHONY: tag/delete
 tag/delete: | dep/git  ## Delete the tag for the current version
-    $(eval TAG := $(shell echo $(APP_VERSION)))
-    $(eval tag_exists=$(shell $(GIT) rev-parse $(TAG) >/dev/null 2>&1 && echo 1 || echo 0))
-    @if [ "$(tag_exists)" = "1" ]; then \
-        @echo -e "$(CYAN)\nDeleting tag $(TAG)...$(RESET)"; \
-        $(GIT) tag -d $(TAG) && $(GIT) push origin :refs/tags/$(TAG); \
-        echo -e "$(GREEN)Done.$(RESET)" ; \
-    else \
-        @echo -e "$(ORANGE)Current version $(APP_VERSION) is not tagged.$(RESET)"; \
-    fi
+	@$(eval TAG := v$(APP_VERSION))
+	@if $(GIT) rev-parse $(TAG) >/dev/null 2>&1; then \
+		echo -e "$(CYAN)\nDeleting tag $(TAG)...$(RESET)"; \
+		$(GIT) tag -d $(TAG) && $(GIT) push origin :refs/tags/$(TAG); \
+		echo -e "$(GREEN)Done.$(RESET)" ; \
+	else \
+		echo -e "$(ORANGE)Tag $(TAG) does not exist.$(RESET)"; \
+	fi
+
+.PHONY: release/check
+release/check: | dep/git  ## Check if a new release is needed
+	@TAG=$$($(GIT) describe --tags --abbrev=0); \
+	BEHIND_AHEAD=$$($(GIT) rev-list --left-right --count $$TAG...HEAD); \
+	if [ "$$BEHIND_AHEAD" = "0	0" ]; then echo "false" > $(RELEASE_STAMP); else echo "true" > $(RELEASE_STAMP); fi; \
+	echo -e "$(CYAN)\nChecking if a new release is needed...$(RESET)"; \
+	echo -e "  $(CYAN)Current tag:$(RESET) $$TAG"; \
+	echo -e "  $(CYAN)Commits behind/ahead:$(RESET) $$(echo $$BEHIND_AHEAD | $(AWK) '{behind=$$1; ahead=$$2; bc=(behind>0 ? "$(RED)" : "$(RESET)"); ac=(ahead>0 ? "$(GREEN)" : "$(RESET)"); print bc "↓" behind "$(RESET)/" ac "↑" ahead "$(RESET)"}')"; \
+	NEEDS=$$(cat $(RELEASE_STAMP)); \
+	if [ "$$NEEDS" = "true" ]; then \
+		echo -e "  $(CYAN)Needs release:$(RESET) $(GREEN)$$NEEDS$(RESET)"; \
+	else \
+		echo -e "  $(CYAN)Needs release:$(RESET) $(ORANGE)$$NEEDS$(RESET)"; \
+	fi
+
+.PHONY: release
+release: tag/push  ## Triggers the release action - pushes the tag to origin (alias: tag/push)
 
 #-- Run
 
@@ -364,8 +365,7 @@ run/firefox: | dep/firefox build/firefox ## Run Firefox addon in development mod
 		--start-url=$(DEFAULT_URL)
 
 .PHONY: run/safari
-run/safari: | dep/safari build/safari  ## Run Safari app-extension 
+run/safari: | dep/safari build/safari  ## Run Safari app-extension
 	@echo -e "$(CYAN)\nRunning Safari app-extension...$(RESET)"
 	@echo -e "${ORANGE}Note that the extension is not signed, you need to go to 'Settings' > Select 'Developer' tab > Check the 'Allow unsigned extensions' box.${RESET}"
 	@open -a $(BUILD_DIR)/$(SAFARI_DIR)/$(APP_NAME)/build/Release/$(APP_NAME).app
-	
