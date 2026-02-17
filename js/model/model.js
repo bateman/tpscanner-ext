@@ -117,9 +117,12 @@ export class Model {
   }
 
   updateItemQuantity(title, quantity) {
-    if (Object.prototype.hasOwnProperty.call(this.selectedItems, title)) {
-      this.selectedItems[title].quantity = quantity;
-      this.saveState();
+    for (const [key, item] of Object.entries(this.selectedItems)) {
+      if (key === title) {
+        item.quantity = quantity;
+        this.saveState();
+        return;
+      }
     }
   }
 
@@ -134,31 +137,27 @@ export class Model {
   }
 
   computeDeals() {
-    const len = Object.keys(this.selectedItems).length;
-    if (len === 0) return;
+    const entries = Object.entries(this.selectedItems);
+    if (entries.length === 0) return;
 
-    let bestIndividualDeals = {};
+    const dealsMap = new Map();
 
-    for (const itemName in this.selectedItems) {
-      if (
-        Object.prototype.hasOwnProperty.call(this.selectedItems, itemName)
-      ) {
-        const [, deals] = Model.removeUnavailableItems(
-          this.selectedItems[itemName].deals
-        );
-        this.selectedItems[itemName].deals = deals;
+    for (const [itemName, itemData] of entries) {
+      const [, deals] = Model.removeUnavailableItems(itemData.deals);
+      itemData.deals = deals;
 
-        const bestDeals = Model.findBestIndividualDeals(
-          itemName,
-          this.selectedItems[itemName].deals,
-          this.selectedItems[itemName].quantity
-        );
-        bestIndividualDeals[itemName] = bestDeals;
-      }
+      const bestDeals = Model.findBestIndividualDeals(
+        itemName,
+        itemData.deals,
+        itemData.quantity
+      );
+      dealsMap.set(itemName, bestDeals);
     }
 
+    const bestIndividualDeals = Object.fromEntries(dealsMap);
+
     let bestCumulativeDeals = {};
-    if (len > 1) {
+    if (entries.length > 1) {
       bestCumulativeDeals = Model.findBestCumulativeDeals(
         this.selectedItems
       );
@@ -239,41 +238,36 @@ export class Model {
   }
 
   static createItemSellersDictionary(individualDeals) {
-    let itemsDict = {};
-    for (let itemName in individualDeals) {
-      let itemDeals = individualDeals[itemName].deals;
-      let itemSellers = [];
-      for (const deal of itemDeals) {
-        itemSellers.push(deal.seller);
-      }
-      itemsDict[itemName] = itemSellers;
+    const itemsDict = new Map();
+    for (const [itemName, itemData] of Object.entries(individualDeals)) {
+      const itemSellers = itemData.deals.map((deal) => deal.seller);
+      itemsDict.set(itemName, itemSellers);
     }
     return itemsDict;
   }
 
   static findCommonSellers(itemsDict) {
-    const firstItemSellers = new Set(
-      itemsDict[Object.keys(itemsDict)[0]]
-    );
+    const values = [...itemsDict.values()];
+    const commonSellers = new Set(values[0]);
 
-    for (const itemSellers of Object.values(itemsDict)) {
-      firstItemSellers.forEach((seller) => {
+    for (const itemSellers of values) {
+      commonSellers.forEach((seller) => {
         if (!itemSellers.includes(seller)) {
-          firstItemSellers.delete(seller);
+          commonSellers.delete(seller);
         }
       });
     }
 
-    return Array.from(firstItemSellers);
+    return Array.from(commonSellers);
   }
 
   static calculateDealsForCommonSellers(individualDeals, commonSellers) {
-    let bestCumulativeDeals = {};
+    const bestCumulativeDeals = new Map();
 
-    for (let seller of commonSellers) {
-      bestCumulativeDeals[seller] = Model.processSellerDeals(
-        individualDeals,
-        seller
+    for (const seller of commonSellers) {
+      bestCumulativeDeals.set(
+        seller,
+        Model.processSellerDeals(individualDeals, seller)
       );
     }
 
@@ -285,10 +279,7 @@ export class Model {
       cumulativePrice: 0,
     };
 
-    const itemNames = Object.keys(individualDeals);
-
-    for (const itemName of itemNames) {
-      const item = individualDeals[itemName];
+    for (const [itemName, item] of Object.entries(individualDeals)) {
       if (!Model.isValidItem(item)) continue;
 
       const sellerDeal = Model.findSellerDealForItem(item.deals, seller);
@@ -332,62 +323,40 @@ export class Model {
   }
 
   static addDeliveryPrices(bestCumulativeDeals) {
-    for (let seller in bestCumulativeDeals) {
-      let item = bestCumulativeDeals[seller];
+    for (const [, item] of bestCumulativeDeals) {
       if (item.freeDelivery && item.cumulativePrice >= item.freeDelivery) {
         item.cumulativePricePlusDelivery = item.cumulativePrice;
       } else {
         item.cumulativePricePlusDelivery =
           item.cumulativePrice + item.deliveryPrice;
       }
-      bestCumulativeDeals[seller] = item;
     }
 
     return bestCumulativeDeals;
   }
 
   static sortAndFormatDeals(bestCumulativeDeals) {
-    let sortedBestCumulativeDeals = {};
-    Object.keys(bestCumulativeDeals)
-      .sort(
-        (a, b) =>
-          bestCumulativeDeals[a].cumulativePricePlusDelivery -
-          bestCumulativeDeals[b].cumulativePricePlusDelivery
-      )
-      .forEach((key) => {
-        sortedBestCumulativeDeals[key] = bestCumulativeDeals[key];
-      });
+    const sorted = [...bestCumulativeDeals.entries()].sort(
+      ([, a], [, b]) =>
+        a.cumulativePricePlusDelivery - b.cumulativePricePlusDelivery
+    );
 
-    let arrayBestCumulativeDeals = Object.keys(
-      sortedBestCumulativeDeals
-    ).map((key) => {
-      return { [key]: sortedBestCumulativeDeals[key] };
-    });
-
-    return arrayBestCumulativeDeals;
+    return sorted.map(([key, value]) => ({ [key]: value }));
   }
 
   static findBestOverallDeal(bestIndividualDeals, bestCumulativeDeals) {
     let totalIndividualCost = 0;
     if (bestIndividualDeals) {
-      for (const itemName in bestIndividualDeals) {
+      for (const [, itemDeals] of Object.entries(bestIndividualDeals)) {
+        const bestDeal =
+          Array.isArray(itemDeals) && itemDeals.length > 0
+            ? itemDeals[0]
+            : null;
         if (
-          Object.prototype.hasOwnProperty.call(
-            bestIndividualDeals,
-            itemName
-          )
+          bestDeal &&
+          typeof bestDeal.total_price_plus_delivery === "number"
         ) {
-          const itemDeals = bestIndividualDeals[itemName];
-          const bestDeal =
-            Array.isArray(itemDeals) && itemDeals.length > 0
-              ? itemDeals[0]
-              : null;
-          if (
-            bestDeal &&
-            typeof bestDeal.total_price_plus_delivery === "number"
-          ) {
-            totalIndividualCost += bestDeal.total_price_plus_delivery;
-          }
+          totalIndividualCost += bestDeal.total_price_plus_delivery;
         }
       }
     }

@@ -103,22 +103,24 @@ function onBasketLoaded(data) {
   bestCumulativeDeals = data.bestCumulativeDeals || {};
   bestOverallDeal = data.bestOverallDeal || {};
 
-  for (var key in selectedItems) {
-    if (Object.prototype.hasOwnProperty.call(selectedItems, key)) {
-      addItemToList(key, selectedItems[key].url, selectedItems[key].quantity);
-    }
+  for (const [key, item] of Object.entries(selectedItems)) {
+    addItemToList(key, item.url, item.quantity);
   }
 
-  if (
-    Object.keys(bestIndividualDeals).length > 0 ||
-    Object.keys(bestCumulativeDeals).length > 0
-  ) {
+  if (hasComputedDeals()) {
     updateBestDealsMessage(
       bestIndividualDeals,
       bestCumulativeDeals,
       bestOverallDeal
     );
   }
+}
+
+function hasComputedDeals() {
+  return (
+    Object.keys(bestIndividualDeals).length > 0 ||
+    Object.keys(bestCumulativeDeals).length > 0
+  );
 }
 
 function onItemAdded(data) {
@@ -243,14 +245,10 @@ function updateBestDealsMessage(
 }
 
 function getIndividualDealsCount(individualDeals) {
-  let n = -1;
-  if (individualDeals) {
-    n = 0;
-    for (const itemName in individualDeals) {
-      if (Object.prototype.hasOwnProperty.call(individualDeals, itemName)) {
-        n += individualDeals[itemName].length;
-      }
-    }
+  if (!individualDeals) return -1;
+  let n = 0;
+  for (const [, deals] of Object.entries(individualDeals)) {
+    n += deals.length;
   }
   return n;
 }

@@ -25,6 +25,21 @@ globalThis.chrome = {
 };
 globalThis.browser = undefined;
 
+function createDeal(overrides = {}) {
+  return {
+    seller: "DefaultShop",
+    seller_link: "/s",
+    seller_reviews: 5,
+    seller_reviews_link: "/r",
+    seller_rating: 3.0,
+    price: 10,
+    delivery_price: 5,
+    free_delivery: null,
+    availability: true,
+    ...overrides,
+  };
+}
+
 describe("Model", () => {
   let model;
 
@@ -407,44 +422,14 @@ describe("Model", () => {
         "Product A": {
           quantity: 1,
           deals: [
-            {
-              seller: "CommonShop",
-              seller_link: "/s1",
-              seller_reviews: 10,
-              seller_reviews_link: "/r1",
-              seller_rating: 4.5,
-              price: 20,
-              delivery_price: 5,
-              free_delivery: null,
-              availability: true,
-            },
-            {
-              seller: "OnlyA",
-              seller_link: "/s2",
-              seller_reviews: 5,
-              seller_reviews_link: "/r2",
-              seller_rating: 3.0,
-              price: 15,
-              delivery_price: 3,
-              free_delivery: null,
-              availability: true,
-            },
+            createDeal({ seller: "CommonShop", price: 20, seller_reviews: 10, seller_rating: 4.5 }),
+            createDeal({ seller: "OnlyA", price: 15, delivery_price: 3 }),
           ],
         },
         "Product B": {
           quantity: 1,
           deals: [
-            {
-              seller: "CommonShop",
-              seller_link: "/s1",
-              seller_reviews: 10,
-              seller_reviews_link: "/r1",
-              seller_rating: 4.5,
-              price: 30,
-              delivery_price: 5,
-              free_delivery: null,
-              availability: true,
-            },
+            createDeal({ seller: "CommonShop", price: 30, seller_reviews: 10, seller_rating: 4.5 }),
           ],
         },
       };
@@ -624,60 +609,16 @@ describe("Model", () => {
     });
 
     it("should sort cumulative deals by price ascending", () => {
+      const expensiveDeal = createDeal({ seller: "Expensive", price: 100, delivery_price: 10 });
+      const cheapDeal = createDeal({ seller: "Cheap", price: 10, delivery_price: 2 });
       const selectedItems = {
         "Product A": {
           quantity: 1,
-          deals: [
-            {
-              seller: "Expensive",
-              seller_link: "/e",
-              seller_reviews: 5,
-              seller_reviews_link: "/re",
-              seller_rating: 3.0,
-              price: 100,
-              delivery_price: 10,
-              free_delivery: null,
-              availability: true,
-            },
-            {
-              seller: "Cheap",
-              seller_link: "/c",
-              seller_reviews: 5,
-              seller_reviews_link: "/rc",
-              seller_rating: 3.0,
-              price: 10,
-              delivery_price: 2,
-              free_delivery: null,
-              availability: true,
-            },
-          ],
+          deals: [{ ...expensiveDeal }, { ...cheapDeal }],
         },
         "Product B": {
           quantity: 1,
-          deals: [
-            {
-              seller: "Expensive",
-              seller_link: "/e",
-              seller_reviews: 5,
-              seller_reviews_link: "/re",
-              seller_rating: 3.0,
-              price: 100,
-              delivery_price: 10,
-              free_delivery: null,
-              availability: true,
-            },
-            {
-              seller: "Cheap",
-              seller_link: "/c",
-              seller_reviews: 5,
-              seller_reviews_link: "/rc",
-              seller_rating: 3.0,
-              price: 10,
-              delivery_price: 2,
-              free_delivery: null,
-              availability: true,
-            },
-          ],
+          deals: [{ ...expensiveDeal }, { ...cheapDeal }],
         },
       };
 

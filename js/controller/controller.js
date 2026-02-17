@@ -9,81 +9,57 @@ function getBrowser() {
  * (no imports) since the service worker cannot inject module dependencies.
  */
 function scrapeListingItems() {
-  const items = [];
-  const elements = document.querySelectorAll("#listing ul li");
-  for (const element of elements) {
+  function tryGet(fn, fallback = null) {
     try {
-      const merchant = element
-        .querySelector(".item_info .item_merchant a span")
-        .textContent.trim();
-      const merchantLink = element
-        .querySelector(".item_info .item_merchant .merchant_name_and_logo a")
-        .getAttribute("href");
-      const merchantReviews = element
-        .querySelector(
-          '.item_info .item_merchant .wrap_merchant_reviews a[class="merchant_reviews"]'
-        )
-        .textContent.trim();
-      const merchantReviewsLink = element
-        .querySelector(
-          '.item_info .item_merchant .wrap_merchant_reviews a[class="merchant_reviews"]'
-        )
-        .getAttribute("href");
-      let merchantRating = null;
-      try {
-        merchantRating = element
-          .querySelector(
-            '.item_info .item_merchant .wrap_merchant_reviews a[class^="merchant_reviews rating_image"]'
-          )
-          .getAttribute("class");
-      } catch (_e) {
-        // No rating available
-      }
-      const price = element
-        .querySelector(".item_price .item_basic_price")
-        .textContent.trim();
-      let deliveryPrice = null;
-      try {
-        deliveryPrice = element
-          .querySelector(".item_price .item_delivery_price")
-          .textContent.trim();
-      } catch (_e) {
-        // No delivery price
-      }
-      let freeDelivery = null;
-      try {
-        freeDelivery = element
-          .querySelector(
-            ".item_price .free_shipping_threshold span span span"
-          )
-          .textContent.trim();
-      } catch (_e) {
-        // No free delivery threshold
-      }
-      let availability = "not available";
-      try {
-        availability = element
-          .querySelector(".item_price .item_availability span")
-          .getAttribute("class");
-      } catch (_e) {
-        // Not available
-      }
-      const offerLink = element
-        .querySelector(".item_actions a")
-        .getAttribute("href");
+      return fn();
+    } catch (_e) {
+      return fallback;
+    }
+  }
 
-      items.push({
-        merchant,
-        merchantLink,
-        merchantReviews,
-        merchantReviewsLink,
-        merchantRating,
-        price,
-        deliveryPrice,
-        freeDelivery,
-        availability,
-        offerLink,
-      });
+  function scrapeElement(el) {
+    const info = el.querySelector(".item_info .item_merchant");
+    const prices = el.querySelector(".item_price");
+    const reviewsSel =
+      '.wrap_merchant_reviews a[class="merchant_reviews"]';
+    const ratingSel =
+      '.wrap_merchant_reviews a[class^="merchant_reviews rating_image"]';
+    return {
+      merchant: info.querySelector("a span").textContent.trim(),
+      merchantLink: info
+        .querySelector(".merchant_name_and_logo a")
+        .getAttribute("href"),
+      merchantReviews: info.querySelector(reviewsSel).textContent.trim(),
+      merchantReviewsLink: info
+        .querySelector(reviewsSel)
+        .getAttribute("href"),
+      merchantRating: tryGet(() =>
+        info.querySelector(ratingSel).getAttribute("class")
+      ),
+      price: prices.querySelector(".item_basic_price").textContent.trim(),
+      deliveryPrice: tryGet(() =>
+        prices.querySelector(".item_delivery_price").textContent.trim()
+      ),
+      freeDelivery: tryGet(() =>
+        prices
+          .querySelector(".free_shipping_threshold span span span")
+          .textContent.trim()
+      ),
+      availability: tryGet(
+        () =>
+          prices
+            .querySelector(".item_availability span")
+            .getAttribute("class"),
+        "not available"
+      ),
+      offerLink: el.querySelector(".item_actions a").getAttribute("href"),
+    };
+  }
+
+  const items = [];
+  for (const element of document.querySelectorAll("#listing ul li")) {
+    try {
+      items.push(scrapeElement(element));
     } catch (_e) {
       // Skip malformed listing elements
     }

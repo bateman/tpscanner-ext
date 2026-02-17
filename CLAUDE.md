@@ -16,7 +16,7 @@ TPscanner is a cross-browser extension for comparing prices on [trovaprezzi.it](
   - `popup.js` / `deals.js` — Run in the popup context. Render the UI and send user actions as messages to the service worker.
   - `view.js` — Runs in the service worker. Acts as a bridge: receives model notifications and forwards them to the popup via `runtime.sendMessage`.
 - **Controller** (`controller.js`): Runs in the service worker. Receives user actions (routed by `background.js`), orchestrates model updates and page scraping via `executeScript`.
-- **Router** (`background.js`): Service worker entry point. Listens for messages from the popup and dispatches them to the appropriate controller method.
+- **Router** (`background.js`): Service worker entry point. Uses `Map`-based dispatch (`asyncHandlers`, `syncHandlers`) to route messages from the popup to the appropriate controller method.
 
 **Message Flow**:
 ```
@@ -76,8 +76,8 @@ All static methods on `Model` for testability:
 
 1. **`removeUnavailableItems`** - Filters out unavailable sellers (except Amazon)
 2. **`findBestIndividualDeals`** - Finds deals where `price * quantity >= free_delivery` threshold, sorted by total price + delivery
-3. **`findBestCumulativeDeals`** - Finds sellers carrying all basket items, calculates cumulative cost:
-   - `createItemSellersDictionary` → `findCommonSellers` → `calculateDealsForCommonSellers` → `addDeliveryPrices` → `sortAndFormatDeals`
+3. **`findBestCumulativeDeals`** - Finds sellers carrying all basket items, calculates cumulative cost. Uses `Map` internally to avoid object injection sinks:
+   - `createItemSellersDictionary` (→ Map) → `findCommonSellers` (→ Array) → `calculateDealsForCommonSellers` (→ Map) → `addDeliveryPrices` (→ Map) → `sortAndFormatDeals` (→ Array)
 4. **`findBestOverallDeal`** - Compares cheapest individual vs cheapest cumulative
 
 ## Known Issues
@@ -94,7 +94,7 @@ npm run test:watch  # Watch mode
 make test         # Via Makefile
 ```
 
-**Test files**: `tests/unit/{model,controller,scraping}.test.js` (48 tests)
+**Test files**: `tests/unit/{model,controller,scraping,commons}.test.js` (78 tests)
 
 **Mock setup**: Tests mock `globalThis.chrome.storage.local` with `get`/`set` functions and `globalThis.chrome.scripting.executeScript`. Set `globalThis.browser = undefined` to force Chrome path.
 
@@ -142,28 +142,43 @@ parent.appendChild(el);
 - Guard formatting functions against non-number values
 - `host_permissions` restricted to `trovaprezzi.it` only
 - `executeScript` runs a self-contained function in the page context to query the DOM and return structured data (never raw HTML)
-- Message handlers include `default` case for unrecognized types
-- **Avoid generic object injection sinks**: Never use bracket notation (`obj[key]`) with dynamic keys on plain objects without guarding access. Use `Object.hasOwn(obj, key)` before reading/writing, or use `Map`/`Set` instead of plain objects for dictionaries with dynamic keys. When iterating, prefer `Object.entries()`, `Object.keys()`, or `Object.values()` over `for...in` with bracket access.
+- Message dispatch uses `Map`-based lookup (not `switch`) in `background.js` for type safety and lower complexity
+- **Avoid generic object injection sinks**: Never use bracket notation (`obj[variable]`) with dynamic keys. Codacy flags every `obj[variable]` as a security issue, even with `hasOwnProperty` guards. The only accepted patterns are:
+  1. **Iteration**: Use `Object.entries()` / `Object.values()` with destructuring — never `for...in` + bracket access
+  2. **Dynamic dictionaries**: Use `Map` / `Set` — never plain objects with `obj[key] = value`
+  3. **Single-key lookup**: Use `Object.entries().find()` or iterate with early return — never `obj[key]`
+  4. **Literal keys**: `obj["literalString"]` and `obj.property` are fine — only `obj[variable]` is flagged
+  5. **Computed property in object literals**: `{ [key]: value }` (creating a new object) is fine
 
 ```javascript
-// BAD — triggers Generic Object Injection Sink
-const value = obj[userKey];
+// BAD — triggers Generic Object Injection Sink (even with guard!)
+if (Object.hasOwn(obj, key)) { const value = obj[key]; }
 obj[dynamicKey] = data;
+for (const k in obj) { process(obj[k]); }
 
-// GOOD — guard with hasOwn
-if (Object.hasOwn(obj, userKey)) {
-  const value = obj[userKey];
-}
-
-// GOOD — use Map for dynamic key dictionaries
-const map = new Map();
-map.set(dynamicKey, data);
-const value = map.get(dynamicKey);
-
-// GOOD — destructure during iteration instead of bracket access
+// GOOD — destructure during iteration
 for (const [key, value] of Object.entries(obj)) {
   process(key, value);
 }
+
+// GOOD — use Map for building dictionaries with dynamic keys
+const map = new Map();
+map.set(dynamicKey, data);
+const value = map.get(dynamicKey);
+// Convert to plain object when needed: Object.fromEntries(map)
+
+// GOOD — single-key lookup via iteration
+for (const [key, item] of Object.entries(obj)) {
+  if (key === targetKey) { item.prop = newValue; return; }
+}
+
+// GOOD — Map-based dispatch (instead of switch with many cases)
+const handlers = new Map([
+  ["ACTION_A", (msg) => handleA(msg)],
+  ["ACTION_B", (msg) => handleB(msg)],
+]);
+const handler = handlers.get(message.type);
+if (handler) handler(message);
 ```
 
 **Quality:**
@@ -172,7 +187,13 @@ for (const [key, value] of Object.entries(obj)) {
 - Handle promise rejections with `.catch()` or try/catch
 - `Model.create()` has `.catch()` fallback to empty state on storage failure
 - Async message handlers return `true` to keep `sendResponse` channel open
-- **Keep functions under 50 lines of code.** Extract helper functions to stay within this limit. This applies to both production code and test code (including individual `it()` blocks). When a function or test grows beyond 50 lines, refactor by extracting setup logic, helper builders, or sub-functions.
+- **Keep functions under 50 lines of code.** Extract helper functions to stay within this limit. This applies to both production code and test code (including individual `it()` blocks). When a function or test grows beyond 50 lines, refactor by extracting setup logic, helper builders, or sub-functions. For `executeScript` functions that must be self-contained, use nested helper functions to split the logic.
+- **Keep cyclomatic complexity at 8 or below.** Reduce complexity by:
+  - Using `Map`-based dispatch instead of large `switch` statements
+  - Extracting conditional logic into named helper functions
+  - Using `Object.entries()` instead of `for...in` + `hasOwnProperty` guards (eliminates 2 branches)
+  - Using early returns to avoid deep nesting
+- **Use shared test helpers** (e.g. `createDeal()` builder) to reduce test verbosity. Define helpers at the top of the `describe` block or outside it to keep individual `it()` blocks concise.
 
 ## Dependencies
 
