@@ -1,4 +1,3 @@
-/* global DOMParser */
 import { describe, it, expect } from "vitest";
 import { convertDataTypes } from "../../js/utils/scraping.js";
 
