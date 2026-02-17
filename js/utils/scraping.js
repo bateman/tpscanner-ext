@@ -120,54 +120,39 @@ export function extractBestPriceShippingIncluded(htmlContent) {
   return [itemName, item];
 }
 
-export function convertDataTypes({
-  merchant,
-  merchantLink,
-  merchantReviews,
-  merchantReviewsLink,
-  merchantRating,
-  price,
-  deliveryPrice,
-  freeDelivery,
-  availability,
-  offerLink,
-}) {
-  const numberPattern = /\b\d+[,.]?\d*\b/;
-  const item = {};
+const NUMBER_PATTERN = /\b\d+[,.]?\d*\b/;
+const BASE_URL = "https://www.trovaprezzi.it";
 
-  item.seller = merchant;
-  item.seller_link = merchantLink
-    ? "https://www.trovaprezzi.it" + merchantLink
-    : null;
-  const reviewsMatch = merchantReviews
-    ? merchantReviews.match(numberPattern)
-    : null;
-  item.seller_reviews = reviewsMatch
-    ? parseInt(reviewsMatch[0].replace(".", ""))
-    : 0;
-  item.seller_reviews_link = merchantReviewsLink
-    ? "https://www.trovaprezzi.it" + merchantReviewsLink
-    : null;
-  item.seller_rating = merchantRating
-    ? parseFloat(merchantRating.split(" ")[2].replace("rate", "")) / 10.0
-    : null;
-  const priceMatch = price ? price.match(numberPattern) : null;
-  item.price = priceMatch
-    ? parseFloat(priceMatch[0].replace(",", "."))
-    : 0;
-  item.delivery_price =
-    deliveryPrice && deliveryPrice.match(numberPattern)
-      ? parseFloat(
-          deliveryPrice.match(numberPattern)[0].replace(",", ".")
-        )
-      : 0.0;
-  item.free_delivery = freeDelivery
-    ? parseFloat(freeDelivery.match(numberPattern)[0].replace(",", "."))
-    : null;
-  item.availability = availability === "available";
-  item.link = offerLink
-    ? "https://www.trovaprezzi.it" + offerLink
-    : null;
+function prefixUrl(path) {
+  return path ? BASE_URL + path : null;
+}
 
-  return item;
+function parseNumber(text, fallback = 0) {
+  const match = text ? text.match(NUMBER_PATTERN) : null;
+  return match ? parseFloat(match[0].replace(",", ".")) : fallback;
+}
+
+function parseReviewCount(text) {
+  const match = text ? text.match(NUMBER_PATTERN) : null;
+  return match ? parseInt(match[0].replace(".", "")) : 0;
+}
+
+function parseRating(ratingClass) {
+  if (!ratingClass) return null;
+  return parseFloat(ratingClass.split(" ")[2].replace("rate", "")) / 10.0;
+}
+
+export function convertDataTypes(raw) {
+  return {
+    seller: raw.merchant,
+    seller_link: prefixUrl(raw.merchantLink),
+    seller_reviews: parseReviewCount(raw.merchantReviews),
+    seller_reviews_link: prefixUrl(raw.merchantReviewsLink),
+    seller_rating: parseRating(raw.merchantRating),
+    price: parseNumber(raw.price),
+    delivery_price: parseNumber(raw.deliveryPrice, 0.0),
+    free_delivery: parseNumber(raw.freeDelivery, null),
+    availability: raw.availability === "available",
+    link: prefixUrl(raw.offerLink),
+  };
 }
