@@ -5,3 +5,4 @@ build/
 store/auth/
 node_modules/
 .codacy/
+.eslintrc.json
