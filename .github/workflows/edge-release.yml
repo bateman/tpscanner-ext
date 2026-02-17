@@ -12,7 +12,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
             - name: Set version
               id: version
@@ -22,7 +22,7 @@ jobs:
               run: make build/chrome
 
             - name: Upload to the Edge Add-ons Store
-              uses: wdzeng/edge-addon@v2
+              uses: wdzeng/edge-addon@d4db1eea77297a24d799394dec87e8912e0902f9 # v2
               with:
                 product-id: ${{ secrets.EDGE_PRODUCT_ID }}
                 zip-path: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
