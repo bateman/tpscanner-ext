@@ -1,5 +1,5 @@
 body {
-    width: 570px;
+    width: 595px;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 13px;
     font-weight: 400;
@@ -97,7 +97,7 @@ img.footer-gh {
 }
 
 #item-image {
-    margin-left: 395px;
+    margin-left: 420px;
     border: #e2e2e2 0.5px solid;
 }
 
@@ -138,11 +138,21 @@ img.footer-gh {
 
 #items th:first-child {
     text-align: left;
-    width: 470px;
 }
 
 #items th:nth-child(n+2) {
     text-align: center;
+    width: 1%;
+    white-space: nowrap;
+}
+
+#items td:nth-child(2) input {
+    width: 40px;
+}
+
+#items td:nth-child(3) {
+    width: 1%;
+    white-space: nowrap;
 }
 
 th {
