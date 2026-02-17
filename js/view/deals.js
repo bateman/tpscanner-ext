@@ -90,6 +90,21 @@ async function loadBestDeals() {
   }
 }
 
+function appendSellerCell(cell, name, link, reviewsLink, reviewsCount) {
+  const sellerAnchor = document.createElement("a");
+  sellerAnchor.href = link;
+  sellerAnchor.textContent = name;
+  sellerAnchor.target = "_blank";
+  cell.appendChild(sellerAnchor);
+  cell.appendChild(document.createTextNode(" ("));
+  const reviewsAnchor = document.createElement("a");
+  reviewsAnchor.href = reviewsLink;
+  reviewsAnchor.textContent = reviewsCount;
+  reviewsAnchor.target = "_blank";
+  cell.appendChild(reviewsAnchor);
+  cell.appendChild(document.createTextNode(")"));
+}
+
 function populateBestIndividualDealsTable(bII, bOD) {
   var table = document.getElementById("bii");
   let previousItemName = "";
@@ -150,18 +165,10 @@ function populateBestIndividualDealsTable(bII, bOD) {
       cellAvailability.appendChild(text);
       cellAvailability.appendChild(symbol);
       var cellSeller = row.insertCell(8);
-      var linkSeller = document.createElement("a");
-      linkSeller.href = deal.seller_link;
-      linkSeller.textContent = deal.seller;
-      linkSeller.target = "_blank";
-      cellSeller.appendChild(linkSeller);
-      cellSeller.appendChild(document.createTextNode(" ("));
-      var linkSellerReviews = document.createElement("a");
-      linkSellerReviews.href = deal.seller_reviews_link;
-      linkSellerReviews.textContent = deal.seller_reviews;
-      linkSellerReviews.target = "_blank";
-      cellSeller.appendChild(linkSellerReviews);
-      cellSeller.appendChild(document.createTextNode(")"));
+      appendSellerCell(
+        cellSeller, deal.seller, deal.seller_link,
+        deal.seller_reviews_link, deal.seller_reviews
+      );
       var cellSellerRating = row.insertCell(9);
       var ratingText = deal.seller_rating
         ? deal.seller_rating.toFixed(1) + " / 5 \u2605"
@@ -183,18 +190,10 @@ function populateBestCumulativeDealsTable(bCD, bOD) {
           row.className = "best-deal";
         }
         var cellSeller = row.insertCell(0);
-        var linkSeller = document.createElement("a");
-        linkSeller.href = itemDeal.sellerLink;
-        linkSeller.textContent = seller;
-        linkSeller.target = "_blank";
-        cellSeller.appendChild(linkSeller);
-        cellSeller.appendChild(document.createTextNode(" ("));
-        var linkSellerReviews = document.createElement("a");
-        linkSellerReviews.href = itemDeal.sellerReviewsLink;
-        linkSellerReviews.textContent = itemDeal.sellerReviews;
-        linkSellerReviews.target = "_blank";
-        cellSeller.appendChild(linkSellerReviews);
-        cellSeller.appendChild(document.createTextNode(")"));
+        appendSellerCell(
+          cellSeller, seller, itemDeal.sellerLink,
+          itemDeal.sellerReviewsLink, itemDeal.sellerReviews
+        );
         if (i === 0 && bOD.best_deal_type === "cumulative") {
           var img = document.createTextNode(" \uD83E\uDD47");
           cellSeller.appendChild(img);
