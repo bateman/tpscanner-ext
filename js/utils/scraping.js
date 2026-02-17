@@ -1,3 +1,50 @@
+function tryGet(fn, fallback = null) {
+  try {
+    return fn();
+  } catch (_e) {
+    return fallback;
+  }
+}
+
+function scrapeListingElement(element) {
+  const info = element.querySelector(".item_info .item_merchant");
+  const prices = element.querySelector(".item_price");
+  const reviewsSel =
+    '.wrap_merchant_reviews a[class="merchant_reviews"]';
+  const ratingSel =
+    '.wrap_merchant_reviews a[class^="merchant_reviews rating_image"]';
+  return {
+    merchant: info.querySelector("a span").textContent.trim(),
+    merchantLink: info
+      .querySelector(".merchant_name_and_logo a")
+      .getAttribute("href"),
+    merchantReviews: info.querySelector(reviewsSel).textContent.trim(),
+    merchantReviewsLink: info
+      .querySelector(reviewsSel)
+      .getAttribute("href"),
+    merchantRating: tryGet(() =>
+      info.querySelector(ratingSel).getAttribute("class")
+    ),
+    price: prices.querySelector(".item_basic_price").textContent.trim(),
+    deliveryPrice: tryGet(() =>
+      prices.querySelector(".item_delivery_price").textContent.trim()
+    ),
+    freeDelivery: tryGet(() =>
+      prices
+        .querySelector(".free_shipping_threshold span span span")
+        .textContent.trim()
+    ),
+    availability: tryGet(
+      () =>
+        prices
+          .querySelector(".item_availability span")
+          .getAttribute("class"),
+      "not available"
+    ),
+    offerLink: element.querySelector(".item_actions a").getAttribute("href"),
+  };
+}
+
 export function extractPricesPlusShipping(htmlContent) {
   const results = [];
 
@@ -5,90 +52,54 @@ export function extractPricesPlusShipping(htmlContent) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    const elements = Array.from(doc.querySelectorAll("#listing ul li"));
-    for (const element of elements) {
-      const merchant = element
-        .querySelector(".item_info .item_merchant a span")
-        .textContent.trim();
-      const merchantLink = element
-        .querySelector(
-          ".item_info .item_merchant .merchant_name_and_logo a"
+    for (const element of doc.querySelectorAll("#listing ul li")) {
+      const raw = scrapeListingElement(element);
+      results.push(
+        convertDataTypes(
+          raw.merchant, raw.merchantLink, raw.merchantReviews,
+          raw.merchantReviewsLink, raw.merchantRating, raw.price,
+          raw.deliveryPrice, raw.freeDelivery, raw.availability,
+          raw.offerLink
         )
-        .getAttribute("href");
-      const merchantReviews = element
-        .querySelector(
-          '.item_info .item_merchant .wrap_merchant_reviews a[class="merchant_reviews"]'
-        )
-        .textContent.trim();
-      const merchantReviewsLink = element
-        .querySelector(
-          '.item_info .item_merchant .wrap_merchant_reviews a[class="merchant_reviews"]'
-        )
-        .getAttribute("href");
-      let merchantRating = null;
-      try {
-        merchantRating = element
-          .querySelector(
-            '.item_info .item_merchant .wrap_merchant_reviews a[class^="merchant_reviews rating_image"]'
-          )
-          .getAttribute("class");
-      } catch (error) {
-        // Do nothing
-      }
-      const price = element
-        .querySelector(".item_price .item_basic_price")
-        .textContent.trim();
-      let deliveryPrice = null;
-      try {
-        deliveryPrice = element
-          .querySelector(".item_price .item_delivery_price")
-          .textContent.trim();
-      } catch (error) {
-        console.log("Error scraping delivery price: " + error);
-      }
-      let freeDelivery = null;
-      try {
-        freeDelivery = element
-          .querySelector(
-            ".item_price .free_shipping_threshold span span span"
-          )
-          .textContent.trim();
-      } catch (error) {
-        // Do nothing
-      }
-      let availability = "not available";
-      try {
-        availability = element
-          .querySelector(".item_price .item_availability span")
-          .getAttribute("class");
-      } catch (error) {
-        // Do nothing
-      }
-      const offerLink = element
-        .querySelector(".item_actions a")
-        .getAttribute("href");
-
-      const item = convertDataTypes(
-        merchant,
-        merchantLink,
-        merchantReviews,
-        merchantReviewsLink,
-        merchantRating,
-        price,
-        deliveryPrice,
-        freeDelivery,
-        availability,
-        offerLink
       );
-      results.push(item);
     }
   } catch (error) {
-    const message = "Error during scraping.";
-    console.error(message);
+    console.error("Error during scraping.");
     throw error;
   }
 
   return results;
+}
+
+function scrapeBestPriceElement(element) {
+  const info = element.querySelector(".item_info .item_merchant");
+  const prices = element.querySelector(".item_price.total_price_sorting");
+  const reviewsSel =
+    '.wrap_merchant_reviews a[class="merchant_reviews"]';
+  const ratingSel =
+    '.wrap_merchant_reviews a[class^="merchant_reviews rating_image"]';
+  return {
+    merchant: info.querySelector("a span").textContent.trim(),
+    merchantReviews: info.querySelector(reviewsSel).textContent.trim(),
+    merchantRating: tryGet(() =>
+      info.querySelector(ratingSel).getAttribute("class")
+    ),
+    price: prices.querySelector(".item_basic_price").textContent.trim(),
+    deliveryPrice: null,
+    freeDelivery: tryGet(() =>
+      prices
+        .querySelector(".free_shipping_threshold span span span")
+        .textContent.trim()
+    ),
+    availability: tryGet(
+      () =>
+        prices
+          .querySelector(".item_availability span")
+          .getAttribute("class"),
+      "not available"
+    ),
+    offerLink: element.querySelector(".item_actions a").getAttribute("href"),
+  };
 }
 
 export function extractBestPriceShippingIncluded(htmlContent) {
@@ -102,70 +113,19 @@ export function extractBestPriceShippingIncluded(htmlContent) {
       doc.querySelectorAll(
         ".name_and_rating h1 strong, .name_and_rating h1"
       )
-    ).map((item) => item.textContent.trim());
+    ).map((el) => el.textContent.trim());
     itemName = itemNames.join(" ").trim();
 
-    const element = doc.querySelector("#listing ul li");
-
-    const merchant = element
-      .querySelector(".item_info .item_merchant a span")
-      .textContent.trim();
-    const merchantReviews = element
-      .querySelector(
-        '.item_info .item_merchant .wrap_merchant_reviews a[class="merchant_reviews"]'
-      )
-      .textContent.trim();
-    let merchantRating = null;
-    try {
-      merchantRating = element
-        .querySelector(
-          '.item_info .item_merchant .wrap_merchant_reviews a[class^="merchant_reviews rating_image"]'
-        )
-        .getAttribute("class");
-    } catch (error) {
-      // Do nothing
-    }
-    const price = element
-      .querySelector(".item_price.total_price_sorting .item_basic_price")
-      .textContent.trim();
-    const deliveryPrice = null;
-    let freeDelivery = null;
-    try {
-      freeDelivery = element
-        .querySelector(
-          ".item_price.total_price_sorting .free_shipping_threshold span span span"
-        )
-        .textContent.trim();
-    } catch (error) {
-      // Do nothing
-    }
-    let availability = "not available";
-    try {
-      availability = element
-        .querySelector(
-          ".item_price.total_price_sorting .item_availability span"
-        )
-        .getAttribute("class");
-    } catch (error) {
-      // Do nothing
-    }
-    const offerLink = element
-      .querySelector(".item_actions a")
-      .getAttribute("href");
-
+    const raw = scrapeBestPriceElement(
+      doc.querySelector("#listing ul li")
+    );
     item = convertDataTypes(
-      merchant,
-      merchantReviews,
-      merchantRating,
-      price,
-      deliveryPrice,
-      freeDelivery,
-      availability,
-      offerLink
+      raw.merchant, raw.merchantReviews, raw.merchantRating,
+      raw.price, raw.deliveryPrice, raw.freeDelivery,
+      raw.availability, raw.offerLink
     );
   } catch (error) {
-    const message = "Error during scraping.";
-    console.error(message);
+    console.error("Error during scraping.");
     throw error;
   }
 
