@@ -3,7 +3,7 @@ name: Chrome Release
 on:
   push:
     tags:
-      - '*.*.*'
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -12,21 +12,21 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              uses: actions/checkout@v4
 
-            - name: Set version
-              id: version
+            - name: Set tag
+              id: tag
               run: echo "manifest=$(jq -c . < manifest.json)" >> $GITHUB_ENV
 
             - name: Create zip
               run: make build/chrome
 
             - name: Upload to Chrome Web Store
-              uses: wdzeng/chrome-extension@b167f5b883d2ade3c4209eccb62fa8307ae44434 # v1
+              uses: wdzeng/chrome-extension@b167f5b883d2ade3c4209eccb62fa8307ae44434
               with:
                 extension-id: apfbfjghmamodacdkkhoiabadlcgmikh
                 zip-path: build/chrome/TPscanner-ext-${{ fromJson(env.manifest).version }}.zip
-                client-id: ${{ secrets.CLIENT }}
-                client-secret: ${{ secrets.SECRET }}
-                refresh-token: ${{ secrets.REFRESH_TOKEN }}
+                client-id: ${{ secrets.CHROME_CLIENT_ID }}
+                client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+                refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
                 upload-only: false

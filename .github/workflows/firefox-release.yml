@@ -3,7 +3,7 @@ name: Firefox Release
 on:
   push:
     tags:
-      - '*.*.*'
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -12,21 +12,20 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              uses: actions/checkout@v4
 
-            - name: Set version
-              id: version
+            - name: Set tag
+              id: tag
               run: echo "manifest=$(jq -c . < manifest.firefox.json)" >> $GITHUB_ENV
               
             - name: Create xpi
               run: make build/firefox
 
             - name: Upload to the Firefox Add-ons Store
-              uses: wdzeng/firefox-addon@b78a4d0148897b072ef18aff65a6bd793e8109be # v1
+              uses: wdzeng/firefox-addon@1c933bcfc899dad45719bc23ec8c607d51bf8c06
               with:
                 addon-guid: TPscanner@fcalefato.dev
                 xpi-path: build/firefox/TPscanner-addon-${{ fromJson(env.manifest).version }}.xpi
                 self-hosted: false
-                license: MIT
                 jwt-issuer: ${{ secrets.FIREFOX_API_KEY }}
                 jwt-secret: ${{ secrets.FIREFOX_API_SECRET }}
