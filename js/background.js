@@ -58,7 +58,11 @@ function dispatch(message, sendResponse) {
 }
 
 getBrowser().runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Wait for initialization so a cold-start message isn't dropped.
-  ready.then(() => dispatch(message, sendResponse));
+  // Wait for initialization so a cold-start message isn't dropped. The
+  // .catch guards against init ever rejecting, so the response channel is
+  // always closed instead of being left open until MV3 GC.
+  ready
+    .then(() => dispatch(message, sendResponse))
+    .catch((err) => sendResponse({ status: "error", error: err.message }));
   return true; // keep the response channel open until init completes
 });
