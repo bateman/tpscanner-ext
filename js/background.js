@@ -8,7 +8,10 @@ function getBrowser() {
 
 let controller;
 
-Model.create()
+// Resolves once the controller is initialized. Message handling awaits this
+// so the first message after a cold service-worker start is not dropped while
+// Model.create() is still pending (MV3 terminates idle workers).
+const ready = Model.create()
   .then((model) => {
     const view = new View();
     controller = new Controller(model, view);
@@ -34,18 +37,13 @@ const syncHandlers = new Map([
   ["REQUEST_COMPUTE_DEALS", () => controller.handleComputeDeals()],
 ]);
 
-getBrowser().runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!controller) {
-    sendResponse({ status: "error", error: "Still initializing" });
-    return true;
-  }
-
+function dispatch(message, sendResponse) {
   const asyncHandler = asyncHandlers.get(message.type);
   if (asyncHandler) {
     asyncHandler(message)
       .then(() => sendResponse({ status: "ok" }))
       .catch((err) => sendResponse({ status: "error", error: err.message }));
-    return true;
+    return;
   }
 
   const syncHandler = syncHandlers.get(message.type);
@@ -56,4 +54,15 @@ getBrowser().runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   console.warn("Unknown message type:", message.type);
+  sendResponse({ status: "error", error: "Unknown message type" });
+}
+
+getBrowser().runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Wait for initialization so a cold-start message isn't dropped. The
+  // .catch guards against init ever rejecting, so the response channel is
+  // always closed instead of being left open until MV3 GC.
+  ready
+    .then(() => dispatch(message, sendResponse))
+    .catch((err) => sendResponse({ status: "error", error: err.message }));
+  return true; // keep the response channel open until init completes
 });
